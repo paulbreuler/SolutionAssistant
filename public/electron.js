@@ -15,11 +15,6 @@ const isDev = require("electron-is-dev");
   });
 */
 
-let ps = new shell({
-  executionPolicy: "Bypass",
-  noProfile: true
-});
-
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
@@ -217,10 +212,15 @@ ipcMain.on("packager:retrieveDefaultExtract", function(e) {
 });
 
 // Catch solution:unpack
-ipcMain.on("packager", function(e, packagersettings) {
-  log.info(`Dynamics 365 solution to unpack: ${packagersettings.zipFile}`);
+ipcMain.on("packager", function(e, packagerSettings) {
+  let ps = new shell({
+    executionPolicy: "Bypass",
+    noProfile: true
+  });
 
-  let cmd = buildPackagerCommand(packagersettings);
+  log.info(`Dynamics 365 solution to unpack: ${packagerSettings.zipFile}`);
+
+  let cmd = buildPackagerCommand(packagerSettings);
   console.log(cmd);
 
   ps.addCommand(cmd);
