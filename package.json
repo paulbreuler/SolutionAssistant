@@ -8,20 +8,25 @@
   "main": "public/electron.js",
   "homepage": "./",
   "build": {
-    "appId": "com.electron.${name}",
+    "appId": "com.electron.dynamics-solution-assistant",
     "files": [
       "build/**/*",
       "node_modules/**/*",
-      "build/index.html",
-      "assets/powershell/SolutionPackager.*"
+      "build/index.html"
     ],
     "directories": {
       "buildResources": "assets",
       "output": "dist"
     },
-    "win": {
-      "target": "portable"
-    }
+    "extraResources": [
+      {
+        "from": "assets/powershell/",
+        "to": "powershell/",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
   },
   "dependencies": {
     "@material-ui/core": "^1.3.0",

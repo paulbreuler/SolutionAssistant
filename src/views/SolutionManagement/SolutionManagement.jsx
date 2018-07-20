@@ -35,13 +35,21 @@ class SolutionManagement extends React.Component {
   };
 
   componentDidMount() {
-    ipcRenderer.on("packager:output", err => {
-      this.showNotification({
-        message: "Solution extracted successfully",
-        color: "success",
-        icon: AddAlert
-      });
-      this.handleError(err);
+    ipcRenderer.on("packager:output", (event, type, output) => {
+      if (type === "success") {
+        this.showNotification({
+          message: "Solution extracted successfully",
+          color: "success",
+          icon: AddAlert
+        });
+      } else {
+        this.showNotification({
+          message: `Solution failed to extract! please check log file located at %appdata%\\dynamics-solution-assistant`,
+          color: "danger",
+          icon: AddAlert
+        });
+      }
+      this.handleError(event);
     });
   }
 

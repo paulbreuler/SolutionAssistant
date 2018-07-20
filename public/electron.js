@@ -196,8 +196,12 @@ ipcMain.on("packager:retrieveDefaultExtract", function(e) {
     packagerSettings: {
       action: "extract", // {Extract|Pack}
       zipFile: "", // <file path>
-      zipFilePath: `${app.getAppPath()}\\output\\PackedSolution`,
-      folder: `${app.getAppPath()}\\output\\ExtractedSolution`, // <folder path>
+      zipFilePath: `${app.getPath(
+        "documents"
+      )}\\${app.getName()}\\solutions\\PackedSolution`,
+      folder: `${app.getPath(
+        "documents"
+      )}\\${app.getName()}\\solutions\\ExtractedSolution`, // <folder path>
       packageType: "", // {Unmanaged|Managed|Both}
       allowWrite: "", // {Yes|No}
       allowDelete: "", // {Yes|No|Prompt}
@@ -224,12 +228,12 @@ ipcMain.on("packager", function(e, packagersettings) {
   ps.invoke()
     .then(output => {
       log.info(`\n${output}`);
-      win.webContents.send("packager:output", output);
+      win.webContents.send("packager:output", "success", output);
       ps.dispose();
     })
     .catch(err => {
-      log.error(err);
-      win.webContents.send("packager:output", err);
+      log.error(err.replace(/(\[39m|\[31m)/g, ""));
+      win.webContents.send("packager:output", "error", err);
       ps.dispose();
     });
 
@@ -241,10 +245,15 @@ ipcMain.on("packager", function(e, packagersettings) {
 
 function buildPackagerCommand(packagerSettings) {
   let cmd = "";
-  let solutoinPackagerPath = `${path.dirname(
-    __dirname
-  )}\\assets\\powershell\\SolutionPackager.exe `;
 
+  let solutoinPackagerPath = null;
+  if (isDev) {
+    solutoinPackagerPath = `& '${app.getAppPath()}\\assets\\powershell\\SolutionPackager.exe' `;
+  } else {
+    solutoinPackagerPath = `& '${
+      process.resourcesPath
+    }\\powershell\\SolutionPackager.exe' `;
+  }
   let parameters = "";
   let param = "";
 
@@ -273,6 +282,11 @@ function buildPackagerCommand(packagerSettings) {
         case "localize":
           param = `${packagerSettings[key]} `;
           break;
+        case "folder":
+        case "zipFile":
+          // Quotes to handle paths with spaces
+          param = `/${key} '${packagerSettings[key]}' `;
+          break;
         default:
           param = `/${key} ${packagerSettings[key]} `;
           console.log(param);
@@ -281,7 +295,7 @@ function buildPackagerCommand(packagerSettings) {
     }
   }
 
-  cmd = solutoinPackagerPath + parameters;
+  cmd = `${solutoinPackagerPath} ${parameters}`;
 
   return cmd;
 }
