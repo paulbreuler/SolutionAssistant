@@ -32,7 +32,8 @@ class SolutionManagement extends React.Component {
   state = {
     solutionFile: "",
     count: 0,
-    isPacking: false
+    isPacking: false,
+    packageFolder: ""
   };
 
   componentDidMount() {
@@ -50,7 +51,11 @@ class SolutionManagement extends React.Component {
           icon: AddAlert
         });
       }
-      this.setState({ isPacking: false });
+      this.setState({
+        isPacking: false,
+        packageFolder:
+          type === "success" ? this.props.packagerSettings.folder : ""
+      });
       this.handleError(event);
     });
   }
@@ -151,6 +156,10 @@ class SolutionManagement extends React.Component {
     return { path, file };
   }
 
+  showInFileExplorer() {
+    electron.shell.showItemInFolder(this.state.packageFolder);
+  }
+
   showNotification = notification => {
     this.props.onAddNotification({
       id: Date.now(),
@@ -213,7 +222,7 @@ class SolutionManagement extends React.Component {
                   {(this.props.packagerSettings.action === constants.EXTRACT ||
                     this.props.packagerSettings.action === "") && (
                     <Button
-                      color="primary"
+                      color="secondary"
                       onClick={this.browseForSolutionFile.bind(this)}
                     >
                       Browse
@@ -234,6 +243,14 @@ class SolutionManagement extends React.Component {
                         ? "Extract "
                         : "Pack "}
                       Solution
+                    </Button>
+                  )}
+                  {this.state.packageFolder && (
+                    <Button
+                      color="secondary"
+                      onClick={this.showInFileExplorer.bind(this)}
+                    >
+                      View in File Explorer
                     </Button>
                   )}
                 </React.Fragment>
