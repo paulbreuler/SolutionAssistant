@@ -31,7 +31,8 @@ class SolutionManagement extends React.Component {
 
   state = {
     solutionFile: "",
-    count: 0
+    count: 0,
+    isPacking: false
   };
 
   componentDidMount() {
@@ -49,6 +50,7 @@ class SolutionManagement extends React.Component {
           icon: AddAlert
         });
       }
+      this.setState({ isPacking: false });
       this.handleError(event);
     });
   }
@@ -137,7 +139,10 @@ class SolutionManagement extends React.Component {
         isValid = false;
       }
     }
-    if (isValid) ipcRenderer.send("packager", this.props.packagerSettings);
+    if (isValid) {
+      ipcRenderer.send("packager", this.props.packagerSettings);
+      this.setState({ isPacking: true });
+    }
   }
 
   splitZipFileString(str) {
@@ -219,8 +224,10 @@ class SolutionManagement extends React.Component {
                       color="primary"
                       onClick={this.handleSolutionPackaging.bind(this)}
                       disabled={
-                        this.props.packagerSettings.zipFile.length === 0 &&
-                        this.props.packagerSettings.action === constants.EXTRACT
+                        (this.props.packagerSettings.zipFile.length === 0 &&
+                          this.props.packagerSettings.action ===
+                            constants.EXTRACT) ||
+                        this.state.isPacking
                       }
                     >
                       {this.props.packagerSettings.action === "extract"
