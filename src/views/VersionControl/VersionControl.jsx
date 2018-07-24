@@ -6,11 +6,22 @@ import { withStyles, Paper, TextField } from "@material-ui/core";
 import TreeView from "react-treeview";
 import SplitPane from "react-split-pane";
 import { addNotification, removeNotification } from "../../redux";
+import { Grid } from "@material-ui/core";
+import {
+  CustomInput,
+  ItemGrid,
+  CustomSelect,
+  FolderInput,
+  Button
+} from "components";
+
 import PerfectScrollbar from "perfect-scrollbar";
 import "perfect-scrollbar/css/perfect-scrollbar.css";
 
 import "../../assets/css/tree-view-styles.css";
 import "../../assets/css/split-pane.css";
+
+import customInputStyle from "../../assets/jss/material-dashboard-react/customInputStyle";
 
 // This example data format is totally arbitrary. No data massaging is
 // required and you use regular js in `render` to iterate through and
@@ -74,8 +85,8 @@ class VersionControl extends React.Component {
             userSelect: "text"
           }}
           split="vertical"
-          minSize={150} // width
-          defaultSize={200} // width
+          minSize={225} // width
+          defaultSize={225} // width
           paneStyle={this.props.classes.relative}
         >
           <SplitPane
@@ -130,7 +141,32 @@ class VersionControl extends React.Component {
               })}
             </div>
             <div style={{ backgroundColor: "#F5F5F5", height: "100%" }}>
-              Test
+              <Grid container>
+                <ItemGrid xs={12} sm={12} md={12}>
+                  <TextField
+                    placeholder="Summary"
+                    id="summary-input"
+                    required
+                  />
+                  <TextField
+                    placeholder="Description"
+                    id="description-input"
+                    multiline={true}
+                    rows={5}
+                    rowMax={5}
+                    fullWidth
+                  />
+                </ItemGrid>
+                <ItemGrid xs={12} sm={12} md={12}>
+                  <Button
+                    color="primary"
+                    onClick={console.log("No commits for you")}
+                    fullWidth
+                  >
+                    Commit to ?
+                  </Button>
+                </ItemGrid>
+              </Grid>
             </div>
           </SplitPane>
           <div>
