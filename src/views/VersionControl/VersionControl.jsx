@@ -2,10 +2,12 @@ import PropTypes from "prop-types";
 import React from "react";
 import { connect } from "react-redux";
 import { compose } from "recompose";
-import { withStyles, Paper } from "@material-ui/core";
-import { addNotification, removeNotification } from "../../redux";
+import { withStyles, Paper, TextField } from "@material-ui/core";
 import TreeView from "react-treeview";
 import SplitPane from "react-split-pane";
+import { addNotification, removeNotification } from "../../redux";
+import PerfectScrollbar from "perfect-scrollbar";
+import "perfect-scrollbar/css/perfect-scrollbar.css";
 
 import "../../assets/css/tree-view-styles.css";
 import "../../assets/css/split-pane.css";
@@ -32,20 +34,63 @@ const dataSource = [
   }
 ];
 
-const styles = {};
+const styles = {
+  historyPanel: {
+    overflow: "auto",
+    position: "relative",
+    float: "right",
+    maxHeight: "100%",
+    width: "100%",
+    overflowScrolling: "touch"
+  }
+};
 
 class VersionControl extends React.Component {
+  componentDidMount() {
+    if (navigator.platform.indexOf("Win") > -1) {
+      // eslint-disable-next-line
+      const ps = new PerfectScrollbar(this.refs.historyPanel);
+    }
+  }
+
+  componentDidUpdate() {
+    this.refs.historyPanel.scrollTop = 0;
+  }
   render() {
     return (
       <Paper>
         <SplitPane
+          style={{
+            display: "flex",
+            flex: 1,
+            height: "100%",
+            minHeight: "600px",
+            position: "relative",
+            outline: "none",
+            overflow: "hidden",
+            MozUserSelect: "text",
+            WebkitUserSelect: "text",
+            msUserSelect: "text",
+            userSelect: "text"
+          }}
           split="vertical"
-          minSize={150}
-          defaultSize={200}
+          minSize={150} // width
+          defaultSize={200} // width
           paneStyle={this.props.classes.relative}
         >
-          <div>
-            <div>
+          <SplitPane
+            split="horizontal"
+            minSize={450} // height
+            pane1Style={{
+              flex: "0 0 auto",
+              position: "relative",
+              outline: "none",
+              height: "100px",
+              display: "flex",
+              overflow: "hidden"
+            }}
+          >
+            <div className={this.props.classes.historyPanel} ref="historyPanel">
               {dataSource.map((node, i) => {
                 const type = node.type;
                 const label = <span className="node">{type}</span>;
@@ -84,7 +129,10 @@ class VersionControl extends React.Component {
                 );
               })}
             </div>
-          </div>
+            <div style={{ backgroundColor: "#F5F5F5", height: "100%" }}>
+              Test
+            </div>
+          </SplitPane>
           <div>
             <div className="pane-content"> Second Pane </div>
           </div>
