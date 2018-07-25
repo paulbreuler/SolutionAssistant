@@ -7,13 +7,7 @@ import TreeView from "react-treeview";
 import SplitPane from "react-split-pane";
 import { addNotification, removeNotification } from "../../redux";
 import { Grid } from "@material-ui/core";
-import {
-  CustomInput,
-  ItemGrid,
-  CustomSelect,
-  FolderInput,
-  Button
-} from "components";
+import { ItemGrid, Button } from "components";
 
 import PerfectScrollbar from "perfect-scrollbar";
 import "perfect-scrollbar/css/perfect-scrollbar.css";
@@ -48,25 +42,26 @@ class VersionControl extends React.Component {
           collapsed: true,
           entities: []
         }
-      ]
+      ],
+      summary: "",
+      description: ""
     };
 
     this.addEntity = this.addEntity.bind(this);
+    this.handleChange = this.handleChange.bind(this);
   }
   componentDidMount() {
     if (navigator.platform.indexOf("Win") > -1) {
-      // eslint-disable-next-line
       const scrollbar = new PerfectScrollbar(this.refs.historyPanel);
       this.setState({ ps: scrollbar });
     }
 
-    ipcRenderer.on("versionControl:EntityData", (event, entity, a) => {
-      debugger;
-      console.log(entity);
-      this.addEntity(a);
-      console.log(this.state.dataSource[0].entities);
+    // Adds individual entity
+    ipcRenderer.on("versionControl:EntityData", (event, raw, entity) => {
+      this.addEntity(entity);
     });
 
+    // Request entity data from repo
     ipcRenderer.send(
       "versionControl:requestEntityData",
       this.props.packagerSettings.folder
@@ -78,10 +73,12 @@ class VersionControl extends React.Component {
   }
 
   componentWillUnmount() {
-    ipcRenderer.removeListener("versionControl:EntityData", (event, entity) => {
-      debugger;
-      console.log(entity);
-    });
+    ipcRenderer.removeListener(
+      "versionControl:EntityData",
+      (event, raw, entity) => {
+        this.addEntity(entity);
+      }
+    );
   }
 
   addEntity(entity) {
@@ -97,6 +94,10 @@ class VersionControl extends React.Component {
     });
     this.state.ps.update();
   }
+
+  handleChange = event => {
+    this.setState({ [event.target.name]: event.target.value });
+  };
 
   render() {
     return (
@@ -181,13 +182,19 @@ class VersionControl extends React.Component {
               <Grid container>
                 <ItemGrid xs={12} sm={12} md={12}>
                   <TextField
+                    value={this.state.summary}
+                    onChange={this.handleChange}
+                    name="summary"
                     placeholder="Summary"
                     id="summary-input"
                     required
                     fullWidth
                   />
                   <TextField
+                    value={this.state.description}
+                    onChange={this.handleChange}
                     placeholder="Description"
+                    name="description"
                     id="description-input"
                     multiline={true}
                     rows={4}
@@ -199,7 +206,11 @@ class VersionControl extends React.Component {
                   <Button
                     color="primary"
                     onClick={() => {
-                      console.log("No commits for you");
+                      console.log(
+                        `Summary: ${this.state.summary} \nDescription: ${
+                          this.state.description
+                        }`
+                      );
                     }}
                     fullWidth
                   >
