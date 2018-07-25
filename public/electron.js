@@ -4,9 +4,11 @@ const path = require("path");
 const log = require("electron-log");
 const fs = require("fs");
 const { app, BrowserWindow, ipcMain } = electron;
-
+const simpleGit = require("simple-git");
 const shell = require("node-powershell");
 const isDev = require("electron-is-dev");
+
+const solutionParser = require("../src/native/SolutionParser");
 
 /*const Datastore = require("nedb"),
   db = new Datastore({
@@ -77,6 +79,48 @@ function initializeApp() {
   });
 }
 
+ipcMain.on("versionControl:requestEntityData", function(e, folderPath) {
+  solutionParser.parseEntityData(log, win, folderPath);
+});
+
+/**
+ * Commit to git repository. Initializes if this is the first commit.
+ * To-Do: Have user init repo, then allow commit?
+ */
+ipcMain.on("git:commit", function(e, summary, description, repoPath) {
+  console.log(
+    `Summary: ${summary} \nDescription: ${description} \nRepo Path: ${repoPath}`
+  );
+  simpleGit(repoPath).diffSummary(function(err, status) {
+    console.log(status.files[0]);
+  });
+
+  /*
+  simpleGit()
+    .cwd(repoPath)
+    .add("./*")
+    .commit(`summary: ${summary}, desc: ${description}`, () => {
+      log.info(`Changes commited to repo: ${repoPath}`);
+    });
+    */
+});
+
+ipcMain.on("git:init", function(e, repoPath) {
+  const gitP = require("simple-git/promise");
+  const git = gitP(repoPath);
+  git
+    .checkIsRepo()
+    .then(isRepo => !isRepo && initialiseRepo(git))
+    .then(() => log.info(`Initialized repo for directory ${repoPath}`));
+});
+
+/**
+ * Initialize git repository
+ * @param {simpleGit} git
+ */
+function initialiseRepo(git) {
+  return git.init().then(() => {});
+}
 //setDefaultSettings();
 
 // This method will be called when Electron has finished

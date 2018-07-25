@@ -263,7 +263,7 @@ class SolutionManagement extends React.Component {
               onUpdatePackagerSetting={this.props.onUpdatePackagerSetting}
             />
           </ItemGrid>
-          <NotificationManager displayDuration={6000} />
+          <NotificationManager />
         </Grid>
       </div>
     );
