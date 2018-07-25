@@ -3,10 +3,13 @@ const url = require("url");
 const path = require("path");
 const log = require("electron-log");
 const fs = require("fs");
+const xml2js = require("xml2js");
 const { app, BrowserWindow, ipcMain } = electron;
 
 const shell = require("node-powershell");
 const isDev = require("electron-is-dev");
+
+const solutionParser = require("../src/native/SolutionParser");
 
 /*const Datastore = require("nedb"),
   db = new Datastore({
@@ -77,6 +80,36 @@ function initializeApp() {
   });
 }
 
+ipcMain.on("versionControl:requestEntityData", function(e) {
+  let filePath =
+    "C:\\Users\\Paulbre\\Documents\\dynamics-solution-assistant\\solutions\\ExtractedSolution\\Entities\\abc_application\\Entity.xml";
+
+  console.log("Exists : " + fs.exists(filePath));
+  var parser = new xml2js.Parser();
+  fs.readFile(filePath, function(err, data) {
+    parser.parseString(data, function(err, result) {
+      let jsonOut = JSON.stringify(result);
+      if (log) {
+        log.debug(jsonOut);
+      }
+      let fields = [];
+      result.Entity.EntityInfo[0].entity[0].attributes[0].attribute.forEach(
+        attribute => {
+          fields.push({ physicalName: attribute.$.PhysicalName });
+        }
+      );
+      let entity = new Entity(result.Entity.Name[0].$.OriginalName, fields);
+      win.webContents.send("versionControl:EntityData", result, entity);
+    });
+  });
+});
+
+class Entity {
+  constructor(name, fields) {
+    this.name = name;
+    this.fields = fields;
+  }
+}
 //setDefaultSettings();
 
 // This method will be called when Electron has finished

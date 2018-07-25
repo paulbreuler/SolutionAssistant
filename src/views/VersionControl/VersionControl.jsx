@@ -21,29 +21,9 @@ import "perfect-scrollbar/css/perfect-scrollbar.css";
 import "../../assets/css/tree-view-styles.css";
 import "../../assets/css/split-pane.css";
 
-import customInputStyle from "../../assets/jss/material-dashboard-react/customInputStyle";
-
-// This example data format is totally arbitrary. No data massaging is
-// required and you use regular js in `render` to iterate through and
-// construct your nodes.
-const dataSource = [
-  {
-    type: "Entities",
-    collapsed: false,
-    entities: [
-      {
-        name: "Announcement",
-        fields: [{ name: "subject" }],
-        collapsed: false
-      },
-      {
-        name: "Test Entity",
-        fields: [{ name: "subject" }],
-        collapsed: false
-      }
-    ]
-  }
-];
+import update from "immutability-helper";
+const electron = window.require("electron");
+const ipcRenderer = electron.ipcRenderer;
 
 const styles = {
   historyPanel: {
@@ -57,16 +37,75 @@ const styles = {
 };
 
 class VersionControl extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      ps: "",
+      dataSource: [
+        {
+          type: "Entities",
+          collapsed: false,
+          entities: [
+            {
+              name: "Announcement",
+              fields: [{ physicalName: "subject" }],
+              collapsed: false
+            },
+            {
+              name: "Test Entity",
+              fields: [{ physicalName: "subject" }],
+              collapsed: false
+            }
+          ]
+        }
+      ]
+    };
+
+    this.addEntity = this.addEntity.bind(this);
+  }
   componentDidMount() {
     if (navigator.platform.indexOf("Win") > -1) {
       // eslint-disable-next-line
-      const ps = new PerfectScrollbar(this.refs.historyPanel);
+      const scrollbar = new PerfectScrollbar(this.refs.historyPanel);
+      this.setState({ ps: scrollbar });
     }
+
+    ipcRenderer.on("versionControl:EntityData", (event, entity, a) => {
+      debugger;
+      console.log(entity);
+      this.addEntity(a);
+      console.log(this.state.dataSource[0].entities);
+    });
+
+    ipcRenderer.send("versionControl:requestEntityData");
   }
 
   componentDidUpdate() {
     this.refs.historyPanel.scrollTop = 0;
   }
+
+  componentWillUnmount() {
+    ipcRenderer.removeListener("versionControl:EntityData", (event, entity) => {
+      debugger;
+      console.log(entity);
+    });
+  }
+
+  addEntity(entity) {
+    let newState = update(this.state, {
+      dataSource: [
+        {
+          entities: { $push: [entity] }
+        }
+      ]
+    });
+    this.setState({
+      dataSource: newState.dataSource
+    });
+    this.state.ps.update();
+  }
+
   render() {
     return (
       <Paper>
@@ -75,7 +114,7 @@ class VersionControl extends React.Component {
             display: "flex",
             flex: 1,
             height: "100%",
-            minHeight: "600px",
+            minHeight: "625px",
             position: "relative",
             outline: "none",
             overflow: "hidden",
@@ -91,7 +130,8 @@ class VersionControl extends React.Component {
         >
           <SplitPane
             split="horizontal"
-            minSize={450} // height
+            minSize={400}
+            defaultSize={450} // height
             pane1Style={{
               flex: "0 0 auto",
               position: "relative",
@@ -102,7 +142,7 @@ class VersionControl extends React.Component {
             }}
           >
             <div className={this.props.classes.historyPanel} ref="historyPanel">
-              {dataSource.map((node, i) => {
+              {this.state.dataSource.map((node, i) => {
                 const type = node.type;
                 const label = <span className="node">{type}</span>;
                 return (
@@ -130,7 +170,9 @@ class VersionControl extends React.Component {
                             defaultCollapsed={false}
                           >
                             {entity.fields.map(field => {
-                              return <div className="info">{field.name}</div>;
+                              return (
+                                <div className="info">{field.physicalName}</div>
+                              );
                             })}
                           </TreeView>
                         </TreeView>
@@ -152,15 +194,17 @@ class VersionControl extends React.Component {
                     placeholder="Description"
                     id="description-input"
                     multiline={true}
-                    rows={5}
-                    rowMax={5}
+                    rows={4}
+                    rowsMax={4}
                     fullWidth
                   />
                 </ItemGrid>
                 <ItemGrid xs={12} sm={12} md={12}>
                   <Button
                     color="primary"
-                    onClick={console.log("No commits for you")}
+                    onClick={() => {
+                      console.log("No commits for you");
+                    }}
                     fullWidth
                   >
                     Commit to ?
