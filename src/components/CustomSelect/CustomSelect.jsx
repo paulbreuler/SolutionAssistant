@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  withStyles,
-  FormControl,
-  InputLabel,
-  Select,
-  NativeSelect,
-  MenuItem
-} from "@material-ui/core";
+import { withStyles, FormControl, InputLabel, Select } from "@material-ui/core";
 import { Clear, Check } from "@material-ui/icons";
 import PropTypes from "prop-types";
 import cx from "classnames";
@@ -44,14 +37,14 @@ class CustomSelect extends React.Component {
       [" " + classes.labelRootError]: error,
       [" " + classes.labelRootSuccess]: success && !error
     });
-    const underlineClasses = cx({
+    /*const underlineClasses = cx({
       [classes.underlineError]: error,
       [classes.underlineSuccess]: success && !error,
       [classes.underline]: true
-    });
-    const marginTop = cx({
+    });*/
+    /*const marginTop = cx({
       [classes.marginTop]: labelText === undefined
-    });
+    });*/
     const menu = menuItems.map(item => (
       <React.Fragment key={item.value}>
         <option value={item.value}>{item.text}</option>

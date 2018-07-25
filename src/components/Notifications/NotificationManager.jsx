@@ -15,7 +15,7 @@ class NotificationManager extends React.Component {
   }
 
   render() {
-    const { maxNotificationToDisplay, displayDuration } = this.props;
+    const { maxNotificationToDisplay /*, displayDuration */ } = this.props;
 
     // Set default to 30 seconds. TODO implement better notification timeouts
     //let duration = displayDuration ? displayDuration : -1;
