@@ -18,7 +18,7 @@ import {
   updateAllPackagerSettings
 } from "../../redux";
 import SolutionManagerTabs from "./SolutionManagerTabs";
-import { AddAlert, Message } from "@material-ui/icons";
+import { AddAlert } from "@material-ui/icons";
 
 const constants = require("../../assets/Strings.js");
 
@@ -66,10 +66,10 @@ class SolutionManagement extends React.Component {
     });
 
     ipcRenderer.on("packagerPresets:acquired", (event, presets) => {
-      if (presets.length == 0) {
+      if (presets.length === 0) {
         ipcRenderer.send("packager:retrieveDefaultExtract");
       } else {
-        presets.map(preset => {
+        presets.forEach(preset => {
           this.props.onUpdatePackagerPreset(preset);
           if (preset.presetName === "Default") {
             const { _id, presetName, ...presetToUpdate } = preset;
