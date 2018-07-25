@@ -68,7 +68,7 @@ class VersionControl extends React.Component {
     // Request entity data from repo
     ipcRenderer.send(
       "versionControl:requestEntityData",
-      this.props.packagerSettings.folder
+      this.props.packagerSettings.current.folder
     );
   }
 

@@ -79,6 +79,7 @@ function initializeApp() {
 }
 
 ipcMain.on("versionControl:requestEntityData", function(e, folderPath) {
+  console.log(folderPath);
   solutionParser.parseEntityData(log, win, folderPath);
 });
 
