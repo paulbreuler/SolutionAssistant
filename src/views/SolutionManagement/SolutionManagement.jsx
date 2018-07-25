@@ -10,8 +10,13 @@ import {
   FolderInput
 } from "components";
 import { connect } from "react-redux";
-import { updatePackagerSetting } from "../../redux";
-import { addNotification, removeNotification } from "../../redux";
+import {
+  addNotification,
+  removeNotification,
+  updatePackagerSetting,
+  updatePackagerPreset,
+  updateAllPackagerSettings
+} from "../../redux";
 import SolutionManagerTabs from "./SolutionManagerTabs";
 import { AddAlert, Message } from "@material-ui/icons";
 
@@ -33,7 +38,8 @@ class SolutionManagement extends React.Component {
     solutionFile: "",
     count: 0,
     isPacking: false,
-    packageFolder: ""
+    packageFolder: "",
+    loadedFromDB: false
   };
 
   componentDidMount() {
@@ -58,10 +64,29 @@ class SolutionManagement extends React.Component {
       });
       this.handleError(event);
     });
+
+    ipcRenderer.on("packagerPresets:acquired", (event, presets) => {
+      if (presets.length == 0) {
+        ipcRenderer.send("packager:retrieveDefaultExtract");
+      } else {
+        presets.map(preset => {
+          this.props.onUpdatePackagerPreset(preset);
+          if (preset.presetName === "Default") {
+            const { _id, presetName, ...presetToUpdate } = preset;
+            this.props.onUpdateAllPackagerSettings(presetToUpdate);
+            this.setState({ loadedFromDB: true });
+          }
+        });
+      }
+    });
+    ipcRenderer.send("packagerPresets:retrieve");
   }
 
   componentWillUnmount() {
     ipcRenderer.removeListener("packager:output", err => {
+      this.handleError(err);
+    });
+    ipcRenderer.removeListener("packagerPresets:acquired", err => {
       this.handleError(err);
     });
   }
@@ -222,7 +247,7 @@ class SolutionManagement extends React.Component {
                   {(this.props.packagerSettings.action === constants.EXTRACT ||
                     this.props.packagerSettings.action === "") && (
                     <Button
-                      color="secondary"
+                      color="white"
                       onClick={this.browseForSolutionFile.bind(this)}
                     >
                       Browse
@@ -247,7 +272,7 @@ class SolutionManagement extends React.Component {
                   )}
                   {this.state.packageFolder && (
                     <Button
-                      color="secondary"
+                      color="rose"
                       onClick={this.showInFileExplorer.bind(this)}
                     >
                       View in File Explorer
@@ -261,6 +286,9 @@ class SolutionManagement extends React.Component {
             <SolutionManagerTabs
               packagerSettings={this.props.packagerSettings}
               onUpdatePackagerSetting={this.props.onUpdatePackagerSetting}
+              packagerPresets={this.props.packagerPresets}
+              onUpdatePackagerPreset={this.props.onUpdatePackagerPreset}
+              loadedFromDB={this.state.loadedFromDB}
             />
           </ItemGrid>
           <NotificationManager displayDuration={6000} />
@@ -271,15 +299,20 @@ class SolutionManagement extends React.Component {
 }
 
 SolutionManagement.propTypes = {
-  onUpdatePackagerSetting: PropTypes.func.isRequired
+  onUpdatePackagerSetting: PropTypes.func.isRequired,
+  onUpdateAllPackagerSettings: PropTypes.func.isRequired,
+  onUpdatePackagerPreset: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
-  packagerSettings: state.packagerSettings
+  packagerSettings: state.packagerSettings.current,
+  packagerPresets: state.packagerSettings.presets
 });
 
 const mapActionsToProps = {
   onUpdatePackagerSetting: updatePackagerSetting,
+  onUpdateAllPackagerSettings: updateAllPackagerSettings,
+  onUpdatePackagerPreset: updatePackagerPreset,
   onAddNotification: addNotification,
   onRemoveNotification: removeNotification
 };

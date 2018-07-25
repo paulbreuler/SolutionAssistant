@@ -8,7 +8,11 @@ import {
   removeNotification
 } from "./actions/notificationActions";
 
-import { updatePackagerSetting } from "./actions/packagerSettingsActions";
+import {
+  updatePackagerSetting,
+  updateAllPackagerSettings,
+  updatePackagerPreset
+} from "./actions/packagerSettingsActions";
 
 // ##############################
 // // // Reducers
@@ -29,6 +33,8 @@ export {
   addNotification,
   removeNotification,
   updatePackagerSetting,
+  updateAllPackagerSettings,
+  updatePackagerPreset,
   // Reducers
   notificationsReducer,
   packagerSettingsReducer
