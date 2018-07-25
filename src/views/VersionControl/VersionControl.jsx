@@ -46,18 +46,7 @@ class VersionControl extends React.Component {
         {
           type: "Entities",
           collapsed: false,
-          entities: [
-            {
-              name: "Announcement",
-              fields: [{ physicalName: "subject" }],
-              collapsed: false
-            },
-            {
-              name: "Test Entity",
-              fields: [{ physicalName: "subject" }],
-              collapsed: false
-            }
-          ]
+          entities: []
         }
       ]
     };
@@ -125,7 +114,7 @@ class VersionControl extends React.Component {
           }}
           split="vertical"
           minSize={225} // width
-          defaultSize={225} // width
+          defaultSize={265} // width
           paneStyle={this.props.classes.relative}
         >
           <SplitPane
@@ -189,6 +178,7 @@ class VersionControl extends React.Component {
                     placeholder="Summary"
                     id="summary-input"
                     required
+                    fullWidth
                   />
                   <TextField
                     placeholder="Description"
