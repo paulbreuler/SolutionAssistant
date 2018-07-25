@@ -15,7 +15,6 @@ const solutionParser = require("../src/native/SolutionParser");
     filename: `${path.dirname(__dirname)}\\assets\\datastore\\settings.store`,
     autoload: true
   });
-*/
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -165,41 +164,59 @@ function setDefaultSettings() {
 /*
   Retrieve Settings
 */
-/*
-ipcMain.on("settings:retrieve", function(e) {
-  db.findOne({ _id: "id1" }, { restEndpoint: 1, repoPath: 1 }, function(
-    err,
-    settings
-  ) {
-    win.webContents.send("settings:update", settings);
+ipcMain.on("packagerPresets:retrieve", function(e) {
+  db.find({ presetName: { $exists: true } }, function(err, presets) {
+    win.webContents.send("packagerPresets:acquired", presets);
   });
 });
-*/
 
-// TO-DO this is a bit complex. Simplify!
-// This will not be a great solution for a case with many settings
 /*
   Update Settings
+
+  Preset:
+  {
+    _id: string,
+    presetName: string,
+    action: string, // {"extract"|"pack"}
+    zipFile: string, // <file path>
+    zipFilePath: string,
+    folder: string, // <folder path>
+    packageType: string, // {"unmanaged"|"managed"|"both"}
+    allowWrite: string, // {"yes"|"no"}
+    allowDelete: string, // {"yes"|"no"|"prompt"}
+    clobber: string,
+    errorLevel: string, // {"yes"|"no"|"prompt"}
+    map: string, // <file path>
+    nologo: string,
+    log: string, // <file path>
+    sourceLoc: string, // <string>
+    localize: string
+  }
 */
-/*
-ipcMain.on("settings:update", function(e, settings) {
+ipcMain.on("packagerPresets:update", function(e, preset) {
   db.update(
     {
-      _id: "id1"
+      presetName: `${preset.presetName}`
     },
     {
-      $set: {
-        repoPath: settings.repoPath,
-        restEndpoint: settings.restEndpoint
-      }
+      $set: { ...preset }
     },
-    { multi: true },
+    {},
     function(err, numReplaced) {
       // Update callbackcode here
+      // db.find({ presetName: { $exists: true } }, function(
+      //   err,
+      //   presets
+      // ) {
+      //   win.webContents.send("packagerPresets:acquired", presets);
+      // });
     }
   );
 });
-*/
+
+ipcMain.on("packagerPresets:insert", function(e, preset) {
+  db.insert({ ...preset }, function(err, newDoc) {});
+});
 
 /*
 ipcMain.on("settings:update", function(e, settings) {
@@ -256,6 +273,7 @@ ipcMain.on("settings:update", function(e, settings) {
 ipcMain.on("packager:retrieveDefaultExtract", function(e) {
   win.webContents.send("packager:defaultExtract", {
     packagerSettings: {
+      presetName: "Default",
       action: "extract", // {Extract|Pack}
       zipFile: "", // <file path>
       zipFilePath: `${app.getPath(
