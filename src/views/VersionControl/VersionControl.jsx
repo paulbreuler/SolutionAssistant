@@ -164,9 +164,18 @@ class VersionControl extends React.Component {
                         if (!entity) {
                           return <div> error </div>;
                         }
-                        const label2 = (
-                          <span className="node">{entity.name}</span> // Header
-                        );
+                        let label2 = "";
+                        if (entity.isModified) {
+                          label2 = (
+                            <span className="node" style={{ color: "red" }}>
+                              {entity.name}
+                            </span> // Header
+                          );
+                        } else {
+                          label2 = (
+                            <span className="node">{entity.name}</span> // Header
+                          );
+                        }
                         const label3 = (
                           <span className="node">{"Fields"}</span> // Header 1
                         );

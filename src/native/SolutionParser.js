@@ -6,7 +6,8 @@
 const path = require("path");
 const fs = require("fs");
 const xml2js = require("xml2js");
-
+const shell = require("node-powershell");
+const simpleGit = require("simple-git");
 /**
  * Explores recursively a directory and returns all the filepaths and folderpaths in the callback.
  *
@@ -87,15 +88,33 @@ module.exports.parseEntityData = (log, win, folderPath) => {
           if (err) {
             log.error(err);
           }
-          parseXml2js(parser, data, log, win, (err, entity) => {
-            if (entity) {
-              entityCollection.push(entity);
+          /*
+       
+          */
+          parseXml2js(
+            parser,
+            data,
+            log,
+            win,
+            folderPath,
+            file,
+            (err, entity) => {
+              if (entity) {
+                entityCollection.push(entity);
+              }
             }
-          });
+          );
         }); // ForEach file
-      }); // FileWalker
+      });
+      // FileWalker
     }); // else
   }
+};
+
+module.exports.checkForChanges = entityCollection => {
+  simpleGit("").diffSummary(function(err, status) {
+    console.log(status.files[0]);
+  });
 };
 
 /**
@@ -108,7 +127,7 @@ module.exports.parseEntityData = (log, win, folderPath) => {
  * @param {callback} callback returns error and new entity instance (err, entity) => {}
  *
  */
-function parseXml2js(parser, data, log, win, callback) {
+function parseXml2js(parser, data, log, win, folderPath, file, callback) {
   let entity = null;
 
   // Parse xml to JS Object
@@ -130,9 +149,39 @@ function parseXml2js(parser, data, log, win, callback) {
 
       entity.fields = fields;
 
-      win.webContents.send("versionControl:EntityData", result, entity);
+      let ps = new shell({
+        executionPolicy: "Bypass",
+        noProfile: true
+      });
 
-      callback(err, entity);
+      let cmd = `cd ${folderPath} | git diff ${file.replace(
+        `${folderPath}\\`,
+        ""
+      )}`;
+      console.log(cmd);
+      ps.addCommand(cmd);
+      log.info(`Running PowerShell Command: ${cmd}`);
+      ps.invoke()
+        .then(output => {
+          //log.info(`\n${output ? output : -1}`);
+          if (output) {
+            entity.isModified = true;
+          }
+          win.webContents.send("versionControl:EntityData", result, entity);
+
+          callback(err, entity);
+
+          ps.dispose();
+        })
+        .catch(err => {
+          log.error(err.replace(/(\[39m|\[31m)/g, ""));
+          ps.dispose();
+        });
+
+      // Called on dispose
+      ps.on("end", code => {
+        console.log("Command complete");
+      });
     }
   });
 }

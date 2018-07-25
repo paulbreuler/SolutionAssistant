@@ -91,12 +91,18 @@ ipcMain.on("git:commit", function(e, summary, description, repoPath) {
   console.log(
     `Summary: ${summary} \nDescription: ${description} \nRepo Path: ${repoPath}`
   );
+  simpleGit(repoPath).diffSummary(function(err, status) {
+    console.log(status.files[0]);
+  });
+
+  /*
   simpleGit()
     .cwd(repoPath)
     .add("./*")
     .commit(`summary: ${summary}, desc: ${description}`, () => {
       log.info(`Changes commited to repo: ${repoPath}`);
     });
+    */
 });
 
 ipcMain.on("git:init", function(e, repoPath) {
