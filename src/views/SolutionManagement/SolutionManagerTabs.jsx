@@ -41,6 +41,9 @@ const styles = theme => ({
   root: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.paper
+  },
+  spacer: {
+    margin: "27px 0 0 0"
   }
 });
 
@@ -275,12 +278,19 @@ class SolutionManagerTabs extends React.Component {
                   color="white"
                   onClick={this.saveCurrentPreset}
                   disabled={!this.state.isDirty}
+                  spacer={true}
+                  fullWidth
                 >
                   Save Preset
                 </Button>
               </ItemGrid>
               <ItemGrid xs={4}>
-                <Button color="info" onClick={this.openNewPresetDialog}>
+                <Button
+                  color="info"
+                  onClick={this.openNewPresetDialog}
+                  spacer={true}
+                  fullWidth
+                >
                   Save New Preset
                 </Button>
               </ItemGrid>
