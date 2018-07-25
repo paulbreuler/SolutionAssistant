@@ -66,47 +66,41 @@ module.exports.parseEntityData = (log, win, folderPath) => {
       `Error: directory does not exist: ${folderPath}`
     );
   } else {
-    // Look at alternate to pre-filter
-    // Ref: https://ourcodeworld.com/articles/read/420/how-to-read-recursively-a-directory-in-node-js
-    filewalker(folderPath, (err, results) => {
-      if (err) {
-        log.error(err);
-      } else {
-        results.forEach(file => {
-          if (file.includes("Entity.xml")) {
-            entityFiles.push(file);
-          }
-        });
-      }
+    simpleGit(folderPath).diffSummary(function(err, changes) {
+      // Look at alternate to pre-filter
+      // Ref: https://ourcodeworld.com/articles/read/420/how-to-read-recursively-a-directory-in-node-js
+      filewalker(folderPath, (err, results) => {
+        if (err) {
+          log.error(err);
+        } else {
+          results.forEach(file => {
+            if (file.includes("Entity.xml")) {
+              entityFiles.push(file);
+            }
+          });
+        }
 
-      var parser = new xml2js.Parser();
-      entityFiles.forEach(file => {
-        log.info(`Reading entity data from file: ${file}`);
+        var parser = new xml2js.Parser();
+        entityFiles.forEach(file => {
+          log.info(`Reading entity data from file: ${file}`);
 
-        // Read file
-        fs.readFile(file, function(err, data) {
-          if (err) {
-            log.error(err);
-          }
-          /*
+          // Read file
+          fs.readFile(file, function(err, data) {
+            if (err) {
+              log.error(err);
+            }
+            /*
        
           */
-          parseXml2js(
-            parser,
-            data,
-            log,
-            win,
-            folderPath,
-            file,
-            (err, entity) => {
+            parseXml2js(parser, data, log, win, changes, (err, entity) => {
               if (entity) {
                 entityCollection.push(entity);
               }
-            }
-          );
-        }); // ForEach file
-      });
-      // FileWalker
+            });
+          }); // ForEach file
+        });
+        // FileWalker
+      }); // git diffsummary
     }); // else
   }
 };
@@ -127,9 +121,8 @@ module.exports.checkForChanges = entityCollection => {
  * @param {callback} callback returns error and new entity instance (err, entity) => {}
  *
  */
-function parseXml2js(parser, data, log, win, folderPath, file, callback) {
+function parseXml2js(parser, data, log, win, changes, callback) {
   let entity = null;
-
   // Parse xml to JS Object
   parser.parseString(data, function(err, result) {
     if (err) {
@@ -149,39 +142,16 @@ function parseXml2js(parser, data, log, win, folderPath, file, callback) {
 
       entity.fields = fields;
 
-      let ps = new shell({
-        executionPolicy: "Bypass",
-        noProfile: true
+      let filter = changes.files.filter(change => {
+        let str = result.Entity.EntityInfo[0].entity[0].$.Name;
+        let match = `Entities.*${str}.*Entity.xml`;
+        return change.file.match(match);
       });
 
-      let cmd = `cd ${folderPath} | git diff ${file.replace(
-        `${folderPath}\\`,
-        ""
-      )}`;
-      console.log(cmd);
-      ps.addCommand(cmd);
-      log.info(`Running PowerShell Command: ${cmd}`);
-      ps.invoke()
-        .then(output => {
-          //log.info(`\n${output ? output : -1}`);
-          if (output) {
-            entity.isModified = true;
-          }
-          win.webContents.send("versionControl:EntityData", result, entity);
-
-          callback(err, entity);
-
-          ps.dispose();
-        })
-        .catch(err => {
-          log.error(err.replace(/(\[39m|\[31m)/g, ""));
-          ps.dispose();
-        });
-
-      // Called on dispose
-      ps.on("end", code => {
-        console.log("Command complete");
-      });
+      if (filter.length > 0) {
+        entity.isModified = true;
+      }
+      win.webContents.send("versionControl:EntityData", result, entity);
     }
   });
 }
