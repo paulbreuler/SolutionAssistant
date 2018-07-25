@@ -10,7 +10,7 @@ const isDev = require("electron-is-dev");
 
 const solutionParser = require("../src/native/SolutionParser");
 
-/*const Datastore = require("nedb"),
+const Datastore = require("nedb"),
   db = new Datastore({
     filename: `${path.dirname(__dirname)}\\assets\\datastore\\settings.store`,
     autoload: true
