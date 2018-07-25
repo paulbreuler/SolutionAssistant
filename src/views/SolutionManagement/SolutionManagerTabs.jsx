@@ -187,6 +187,12 @@ class SolutionManagerTabs extends React.Component {
     });
   };
 
+  updateNewPresetName = event => {
+    this.setState({
+      newPresetName: event.target.value
+    });
+  };
+
   handlePresetChange = event => {
     this.applySavedSettings(this.props.packagerPresets[event.target.value]);
   };
@@ -497,7 +503,7 @@ class SolutionManagerTabs extends React.Component {
                   value={this.state.newPresetName}
                   labelText="Preset Name"
                   id="new-preset-name"
-                  handleStateLift={this.updateState}
+                  handleStateLift={this.updateNewPresetName}
                   formControlProps={{
                     fullWidth: true,
                     autoFocus: true
