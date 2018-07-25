@@ -18,7 +18,7 @@ class NotificationManager extends React.Component {
     const { maxNotificationToDisplay, displayDuration } = this.props;
 
     // Set default to 30 seconds. TODO implement better notification timeouts
-    let duration = displayDuration ? displayDuration : 30000;
+    //let duration = displayDuration ? displayDuration : -1;
 
     return (
       <React.Fragment>
@@ -39,9 +39,10 @@ class NotificationManager extends React.Component {
               .map(notification => {
                 return (
                   <React.Fragment>
-                    {setTimeout(() => {
-                      this.closeNotification(notification.id);
-                    }, duration) && (
+                    {
+                      //setTimeout(() => {
+                      //this.closeNotification(notification.id);
+                      //}, duration) &&
                       <Notification
                         key={notification.id}
                         id={notification.id}
@@ -53,7 +54,7 @@ class NotificationManager extends React.Component {
                         closeNotification={this.closeNotification}
                         close
                       />
-                    )}
+                    }
                   </React.Fragment>
                 );
               })}

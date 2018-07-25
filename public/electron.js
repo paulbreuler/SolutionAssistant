@@ -82,6 +82,12 @@ function initializeApp() {
 ipcMain.on("versionControl:requestEntityData", function(e, folderPath) {
   solutionParser.parseEntityData(log, win, folderPath);
 });
+
+ipcMain.on("git:commit", function(e, summary, description, repoPath) {
+  console.log(
+    `Summary: ${summary} \nDescription: ${description} \nRepo Path: ${repoPath}`
+  );
+});
 //setDefaultSettings();
 
 // This method will be called when Electron has finished

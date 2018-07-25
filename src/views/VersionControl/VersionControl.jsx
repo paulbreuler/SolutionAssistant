@@ -3,11 +3,12 @@ import React from "react";
 import { connect } from "react-redux";
 import { compose } from "recompose";
 import { withStyles, Paper, TextField } from "@material-ui/core";
+import { AddAlert } from "@material-ui/icons";
 import TreeView from "react-treeview";
 import SplitPane from "react-split-pane";
 import { addNotification, removeNotification } from "../../redux";
 import { Grid } from "@material-ui/core";
-import { ItemGrid, Button } from "components";
+import { ItemGrid, Button, NotificationManager } from "components";
 
 import PerfectScrollbar from "perfect-scrollbar";
 import "perfect-scrollbar/css/perfect-scrollbar.css";
@@ -49,6 +50,7 @@ class VersionControl extends React.Component {
 
     this.addEntity = this.addEntity.bind(this);
     this.handleChange = this.handleChange.bind(this);
+    this.showNotification = this.showNotification.bind(this);
   }
   componentDidMount() {
     if (navigator.platform.indexOf("Win") > -1) {
@@ -99,132 +101,159 @@ class VersionControl extends React.Component {
     this.setState({ [event.target.name]: event.target.value });
   };
 
+  showNotification = notification => {
+    this.props.onAddNotification({
+      id: Date.now(),
+      message: notification.message,
+      open: true,
+      color: notification.color,
+      icon: notification.icon
+    });
+  };
+
   render() {
     return (
-      <Paper>
-        <SplitPane
-          style={{
-            display: "flex",
-            flex: 1,
-            height: "100%",
-            minHeight: "625px",
-            position: "relative",
-            outline: "none",
-            overflow: "hidden",
-            MozUserSelect: "text",
-            WebkitUserSelect: "text",
-            msUserSelect: "text",
-            userSelect: "text"
-          }}
-          split="vertical"
-          minSize={225} // width
-          defaultSize={265} // width
-          paneStyle={this.props.classes.relative}
-        >
+      <React.Fragment>
+        <Paper>
           <SplitPane
-            split="horizontal"
-            minSize={400}
-            defaultSize={450} // height
-            pane1Style={{
-              flex: "0 0 auto",
+            style={{
+              display: "flex",
+              flex: 1,
+              height: "100%",
+              minHeight: "625px",
               position: "relative",
               outline: "none",
-              height: "100px",
-              display: "flex",
-              overflow: "hidden"
+              overflow: "hidden",
+              MozUserSelect: "text",
+              WebkitUserSelect: "text",
+              msUserSelect: "text",
+              userSelect: "text"
             }}
+            split="vertical"
+            minSize={225} // width
+            defaultSize={265} // width
+            paneStyle={this.props.classes.relative}
           >
-            <div className={this.props.classes.historyPanel} ref="historyPanel">
-              {this.state.dataSource.map((node, i) => {
-                const type = node.type;
-                const label = <span className="node">{type}</span>;
-                return (
-                  <TreeView
-                    key={type + "|" + i}
-                    nodeLabel={label}
-                    defaultCollapsed={false}
-                  >
-                    {node.entities.map(entity => {
-                      if (!entity) {
-                        return <div> error </div>;
-                      }
-                      const label2 = (
-                        <span className="node">{entity.name}</span> // Header
-                      );
-                      const label3 = (
-                        <span className="node">{"Fields"}</span> // Header 1
-                      );
-                      return (
-                        <TreeView
-                          key={entity.name}
-                          nodeLabel={label2}
-                          defaultCollapsed={true}
-                        >
+            <SplitPane
+              split="horizontal"
+              minSize={400}
+              defaultSize={450} // height
+              pane1Style={{
+                flex: "0 0 auto",
+                position: "relative",
+                outline: "none",
+                height: "100px",
+                display: "flex",
+                overflow: "hidden"
+              }}
+            >
+              <div
+                className={this.props.classes.historyPanel}
+                ref="historyPanel"
+              >
+                {this.state.dataSource.map((node, i) => {
+                  const type = node.type;
+                  const label = <span className="node">{type}</span>;
+                  return (
+                    <TreeView
+                      key={type + "|" + i}
+                      nodeLabel={label}
+                      defaultCollapsed={false}
+                    >
+                      {node.entities.map(entity => {
+                        if (!entity) {
+                          return <div> error </div>;
+                        }
+                        const label2 = (
+                          <span className="node">{entity.name}</span> // Header
+                        );
+                        const label3 = (
+                          <span className="node">{"Fields"}</span> // Header 1
+                        );
+                        return (
                           <TreeView
-                            nodeLabel={label3}
-                            key={entity.name + "_fields"}
+                            key={entity.name}
+                            nodeLabel={label2}
                             defaultCollapsed={true}
                           >
-                            {entity.fields.map(field => {
-                              return (
-                                <div className="info">{field.physicalName}</div>
-                              );
-                            })}
+                            <TreeView
+                              nodeLabel={label3}
+                              key={entity.name + "_fields"}
+                              defaultCollapsed={true}
+                            >
+                              {entity.fields.map(field => {
+                                return (
+                                  <div className="info">
+                                    {field.physicalName}
+                                  </div>
+                                );
+                              })}
+                            </TreeView>
                           </TreeView>
-                        </TreeView>
-                      );
-                    })}
-                  </TreeView>
-                );
-              })}
-            </div>
-            <div style={{ backgroundColor: "#F5F5F5", height: "100%" }}>
-              <Grid container>
-                <ItemGrid xs={12} sm={12} md={12}>
-                  <TextField
-                    value={this.state.summary}
-                    onChange={this.handleChange}
-                    name="summary"
-                    placeholder="Summary"
-                    id="summary-input"
-                    required
-                    fullWidth
-                  />
-                  <TextField
-                    value={this.state.description}
-                    onChange={this.handleChange}
-                    placeholder="Description"
-                    name="description"
-                    id="description-input"
-                    multiline={true}
-                    rows={4}
-                    rowsMax={4}
-                    fullWidth
-                  />
-                </ItemGrid>
-                <ItemGrid xs={12} sm={12} md={12}>
-                  <Button
-                    color="primary"
-                    onClick={() => {
-                      console.log(
-                        `Summary: ${this.state.summary} \nDescription: ${
-                          this.state.description
-                        }`
-                      );
-                    }}
-                    fullWidth
-                  >
-                    Commit to ?
-                  </Button>
-                </ItemGrid>
-              </Grid>
+                        );
+                      })}
+                    </TreeView>
+                  );
+                })}
+              </div>
+              <div style={{ backgroundColor: "#F5F5F5", height: "100%" }}>
+                <Grid container>
+                  <ItemGrid xs={12} sm={12} md={12}>
+                    <TextField
+                      value={this.state.summary}
+                      onChange={this.handleChange}
+                      name="summary"
+                      placeholder="Summary (required)"
+                      id="summary-input"
+                      required
+                      fullWidth
+                    />
+                    <TextField
+                      value={this.state.description}
+                      onChange={this.handleChange}
+                      placeholder="Description"
+                      name="description"
+                      id="description-input"
+                      multiline={true}
+                      rows={4}
+                      rowsMax={4}
+                      fullWidth
+                    />
+                  </ItemGrid>
+                  <ItemGrid xs={12} sm={12} md={12}>
+                    <Button
+                      color="primary"
+                      onClick={() => {
+                        if (this.state.summary === "") {
+                          this.showNotification({
+                            message: "Missing summary",
+                            color: "danger",
+                            icon: AddAlert
+                          });
+                        } else {
+                          ipcRenderer.send(
+                            "git:commit",
+                            this.state.summary,
+                            this.state.description,
+                            this.props.packagerSettings.folder
+                          );
+                        }
+                      }}
+                      fullWidth
+                    >
+                      Commit to ?
+                    </Button>
+                  </ItemGrid>
+                </Grid>
+              </div>
+            </SplitPane>
+            <div>
+              <div className="pane-content"> Second Pane </div>
             </div>
           </SplitPane>
-          <div>
-            <div className="pane-content"> Second Pane </div>
-          </div>
-        </SplitPane>
-      </Paper>
+        </Paper>
+        <NotificationManager maxNotificationToDisplay={5} />
+      </React.Fragment>
     );
   }
 }
