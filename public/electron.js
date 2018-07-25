@@ -94,7 +94,7 @@ ipcMain.on("git:commit", function(e, summary, description, repoPath) {
   simpleGit(process.cwd(repoPath))
     .add("./*")
     .commit(`summary: ${summary}, desc: ${description}`, () => {
-      log.info(`Changes commited to repo: ${repoPath}`);
+      log.info(`Changes commited to repo: ${simpleGit.getPath}`);
     });
 });
 
