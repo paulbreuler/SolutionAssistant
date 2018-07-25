@@ -45,12 +45,14 @@ class VersionControl extends React.Component {
         }
       ],
       summary: "",
-      description: ""
+      description: "",
+      mainPanelContent: ""
     };
 
     this.addEntity = this.addEntity.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.showNotification = this.showNotification.bind(this);
+    this.handleEntityClick = this.handleEntityClick.bind(this);
   }
   componentDidMount() {
     if (navigator.platform.indexOf("Win") > -1) {
@@ -111,6 +113,13 @@ class VersionControl extends React.Component {
     });
   };
 
+  handleEntityClick = entity => {
+    console.log("clicked");
+    this.setState({
+      mainPanelContent: `${entity.name} xml content...`
+    });
+  };
+
   render() {
     return (
       <React.Fragment>
@@ -167,13 +176,26 @@ class VersionControl extends React.Component {
                         let label2 = "";
                         if (entity.isModified) {
                           label2 = (
-                            <span className="node" style={{ color: "red" }}>
+                            <span
+                              className="node"
+                              style={{ color: "red" }}
+                              onClick={() => {
+                                this.handleEntityClick(entity);
+                              }}
+                            >
                               {entity.name}
                             </span> // Header
                           );
                         } else {
                           label2 = (
-                            <span className="node">{entity.name}</span> // Header
+                            <span
+                              className="node"
+                              onClick={() => {
+                                this.handleEntityClick(entity);
+                              }}
+                            >
+                              {entity.name}
+                            </span> // Header
                           );
                         }
                         const label3 = (
@@ -250,14 +272,14 @@ class VersionControl extends React.Component {
                       }}
                       fullWidth
                     >
-                      Commit to ?
+                      Commit to Master
                     </Button>
                   </ItemGrid>
                 </Grid>
               </div>
             </SplitPane>
             <div>
-              <div className="pane-content"> Second Pane </div>
+              <div className="pane-content">{this.state.mainPanelContent}</div>
             </div>
           </SplitPane>
         </Paper>
