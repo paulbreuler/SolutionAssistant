@@ -3,7 +3,6 @@ const url = require("url");
 const path = require("path");
 const log = require("electron-log");
 const fs = require("fs");
-const xml2js = require("xml2js");
 const { app, BrowserWindow, ipcMain } = electron;
 
 const shell = require("node-powershell");
@@ -80,107 +79,9 @@ function initializeApp() {
   });
 }
 
-/**
- * Explores recursively a directory and returns all the filepaths and folderpaths in the callback.
- *
- * @see http://stackoverflow.com/a/5827895/4241030
- * @param {String} dir
- * @param {Function} done
- */
-function filewalker(dir, done) {
-  let results = [];
-
-  fs.readdir(dir, function(err, list) {
-    if (err) return done(err);
-
-    var pending = list.length;
-
-    if (!pending) return done(null, results);
-
-    list.forEach(function(file) {
-      file = path.resolve(dir, file);
-      fs.stat(file, function(err, stat) {
-        // If directory, execute a recursive call
-        if (stat && stat.isDirectory()) {
-          // Add directory to array [comment if you need to remove the directories from the array]
-          results.push(file);
-
-          filewalker(file, function(err, res) {
-            results = results.concat(res);
-            if (!--pending) done(null, results);
-          });
-        } else {
-          results.push(file);
-          if (!--pending) done(null, results);
-        }
-      });
-    });
-  });
-}
-
 ipcMain.on("versionControl:requestEntityData", function(e, folderPath) {
-  let filePath = `${folderPath}\\Entities\\abc_application\\Entity.xml`;
-  let entityFiles = [];
-  let entityCollection = [];
-
-  if (!fs.existsSync(filePath)) {
-    win.webContents.send(
-      "versionControl:EntityData",
-      `Error: File does not exist: ${filePath}`
-    );
-  } else {
-    filewalker(folderPath, (err, results) => {
-      if (err) {
-        log.error(err);
-      } else {
-        results.forEach(file => {
-          if (file.includes("Entity.xml")) {
-            entityFiles.push(file);
-          }
-        });
-      }
-
-      var parser = new xml2js.Parser();
-      entityFiles.forEach(file => {
-        log.info(`Reading entity data from file: ${file}`);
-
-        fs.readFile(file, function(err, data) {
-          if (err) {
-            log.error(err);
-          }
-          parser.parseString(data, function(err, result) {
-            if (err) {
-              log.error(err);
-            }
-            let fields = [];
-            if (result.Entity.EntityInfo[0].entity[0].attributes[0].attribute) {
-              result.Entity.EntityInfo[0].entity[0].attributes[0].attribute.forEach(
-                attribute => {
-                  fields.push({ physicalName: attribute.$.PhysicalName });
-                }
-              );
-              let entity = new Entity(
-                result.Entity.Name[0].$.OriginalName,
-                fields
-              );
-              console.log(entity.name);
-              entityCollection.push(entity);
-              win.webContents.send("versionControl:EntityData", result, entity);
-            }
-          });
-        });
-      });
-    });
-  }
+  solutionParser.parseEntityData(log, win, folderPath);
 });
-
-class Entity {
-  constructor(name, fields) {
-    this.name = name;
-    this.fields = fields;
-    this.collapsed = true;
-  }
-}
 //setDefaultSettings();
 
 // This method will be called when Electron has finished
