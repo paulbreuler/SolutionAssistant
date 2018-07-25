@@ -45,7 +45,7 @@ class VersionControl extends React.Component {
       dataSource: [
         {
           type: "Entities",
-          collapsed: false,
+          collapsed: true,
           entities: []
         }
       ]
@@ -67,7 +67,10 @@ class VersionControl extends React.Component {
       console.log(this.state.dataSource[0].entities);
     });
 
-    ipcRenderer.send("versionControl:requestEntityData");
+    ipcRenderer.send(
+      "versionControl:requestEntityData",
+      this.props.packagerSettings.folder
+    );
   }
 
   componentDidUpdate() {
@@ -141,6 +144,9 @@ class VersionControl extends React.Component {
                     defaultCollapsed={false}
                   >
                     {node.entities.map(entity => {
+                      if (!entity) {
+                        return <div> error </div>;
+                      }
                       const label2 = (
                         <span className="node">{entity.name}</span> // Header
                       );
@@ -151,12 +157,12 @@ class VersionControl extends React.Component {
                         <TreeView
                           key={entity.name}
                           nodeLabel={label2}
-                          defaultCollapsed={false}
+                          defaultCollapsed={true}
                         >
                           <TreeView
                             nodeLabel={label3}
                             key={entity.name + "_fields"}
-                            defaultCollapsed={false}
+                            defaultCollapsed={true}
                           >
                             {entity.fields.map(field => {
                               return (
