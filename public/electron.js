@@ -22,7 +22,7 @@ const Datastore = require("nedb"),
 let win;
 
 function initializeApp() {
-  log.transports.file.level = "info";
+  log.transports.file.level = "verbose";
   // Create the browser window.
   win = new BrowserWindow({
     minwidth: 950,
@@ -304,7 +304,6 @@ ipcMain.on("packager", function(e, packagerSettings) {
   log.info(`Dynamics 365 solution to unpack: ${packagerSettings.zipFile}`);
 
   let params = getPackagerParameters(packagerSettings);
-  console.log(process.env);
 
   let solutoinPackagerPath = null;
   if (isDev) {
@@ -313,31 +312,32 @@ ipcMain.on("packager", function(e, packagerSettings) {
     solutoinPackagerPath = `${
       process.resourcesPath
     }/powershell/SolutionPackager.exe' `;
-    solutoinPackagerPath = solutoinPackagerPath
-      .replace(/[a-zA-Z]:\\/i, "/c/")
-      .replace("\\", "/");
+    solutoinPackagerPath = convertPathToShellPath(solutoinPackagerPath);
   }
-
+  log.verbose(
+    `About to run solution packager shell command ${solutoinPackagerPath} \n\t- parameters: ${params}`
+  );
   const ls = childProcess.spawn(solutoinPackagerPath, params);
+  let output = [];
   ls.stdout.on("data", function(data) {
-    //console.log("stdout: <" + data + "> ");
+    console.log("stdout: <" + data + "> ");
     // appendToDroidOutput(data);
-    win.webContents.send(
-      "packager:output",
-      "success",
-      "stdout: <" + data + "> \n"
-    );
+
+    output.push(data.toString());
+    if (`${data}`.includes("Delete")) {
+      ls.stdin.write("No\n");
+      console.log("Delete");
+    }
   });
 
   ls.stderr.on("data", function(data) {
-    win.webContents.send("packager:output", "error", data);
     log.error("stderr: " + data);
   });
 
   ls.on("close", function(code) {
     // console.log('child process exited with code ' + code);
-    if (code == 0) console.log("child process complete.");
-    else console.log("child process exited with code " + code);
+    if (code === 0) win.webContents.send("packager:output", "success", output);
+    else win.webContents.send("packager:output", "error", code);
   });
 });
 
@@ -348,9 +348,7 @@ function getPackagerParameters(packagerSettings) {
   // If we are packing the solution combine zipFilePath and zipFile for command line arg
   // Electron throws error when trying to use
   if (packagerSettings.action === "pack") {
-    let zipFile = `${packagerSettings.zipFilePath}\\${
-      packagerSettings.zipFile
-    }`;
+    let zipFile = `${packagerSettings.zipFilePath}/${packagerSettings.zipFile}`;
     packagerSettings.zipFile = zipFile;
 
     delete packagerSettings.zipFilePath;
@@ -368,21 +366,25 @@ function getPackagerParameters(packagerSettings) {
       switch (key) {
         case "clobber":
         case "localize":
-          param = `${packagerSettings[key]} `;
+          param = `${packagerSettings[key]}`;
           break;
         case "folder":
         case "zipFile":
           // Quotes to handle paths with spaces
-          param = `/${key}:'${packagerSettings[key]}' `;
+          param = `/${key}:${packagerSettings[key]}`;
           break;
         default:
-          param = `/${key}:${packagerSettings[key]} `;
+          param = `/${key}:${packagerSettings[key]}`;
       }
       parameters.push(param);
     }
   }
 
   return parameters;
+}
+
+function convertPathToShellPath(path) {
+  return path.replace(/[a-zA-Z]:\\/i, "/c/").replace(/\\/g, "/");
 }
 
 function getFileExtension(filename) {

@@ -32,6 +32,7 @@ class SolutionManagement extends React.Component {
     this.handleError = this.handleError.bind(this);
     this.showNotification = this.showNotification.bind(this);
     this.splitZipFileString = this.splitZipFileString.bind(this);
+    this.handlePackagerOutput = this.handlePackagerOutput.bind(this);
   }
 
   state = {
@@ -44,25 +45,7 @@ class SolutionManagement extends React.Component {
 
   componentDidMount() {
     ipcRenderer.on("packager:output", (event, type, output) => {
-      if (type === "success") {
-        this.showNotification({
-          message: "Solution extracted successfully",
-          color: "success",
-          icon: AddAlert
-        });
-      } else {
-        this.showNotification({
-          message: `Solution failed to extract! please check log file located at %appdata%\\dynamics-solution-assistant`,
-          color: "danger",
-          icon: AddAlert
-        });
-      }
-      this.setState({
-        isPacking: false,
-        packageFolder:
-          type === "success" ? this.props.packagerSettings.folder : ""
-      });
-      this.handleError(event);
+      this.handlePackagerOutput(event, type, output);
     });
 
     ipcRenderer.on("packagerPresets:acquired", (event, presets) => {
@@ -83,12 +66,30 @@ class SolutionManagement extends React.Component {
   }
 
   componentWillUnmount() {
-    ipcRenderer.removeListener("packager:output", err => {
-      this.handleError(err);
+    ipcRenderer.removeAllListeners("packager:output");
+    ipcRenderer.removeAllListeners("packagerPresets:acquired");
+  }
+
+  handlePackagerOutput(event, type, output) {
+    if (type === "success") {
+      this.showNotification({
+        message: "Solution extracted successfully",
+        color: "success",
+        icon: AddAlert
+      });
+    } else {
+      this.showNotification({
+        message: `Solution failed to extract! please check log file located at %appdata%\\dynamics-solution-assistant`,
+        color: "danger",
+        icon: AddAlert
+      });
+    }
+    this.setState({
+      isPacking: false,
+      packageFolder:
+        type === "success" ? this.props.packagerSettings.folder : ""
     });
-    ipcRenderer.removeListener("packagerPresets:acquired", err => {
-      this.handleError(err);
-    });
+    this.handleError(event);
   }
 
   handleError(err) {

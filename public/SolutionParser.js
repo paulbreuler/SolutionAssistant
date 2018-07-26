@@ -142,7 +142,7 @@ function parseXml2js(parser, data, log, win, changes, callback) {
       entity.fields = fields;
 
       let filter = [];
-      if (changes.files) {
+      if (changes) {
         filter = changes.files.filter(change => {
           let str = result.Entity.EntityInfo[0].entity[0].$.Name;
           let match = `Entities.*${str}.*Entity.xml`;
