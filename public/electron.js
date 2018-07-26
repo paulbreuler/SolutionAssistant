@@ -80,7 +80,6 @@ function initializeApp() {
 }
 
 ipcMain.on("versionControl:requestEntityData", function(e, folderPath) {
-  console.log(folderPath);
   solutionParser.parseEntityData(log, win, folderPath);
 });
 
@@ -320,24 +319,34 @@ ipcMain.on("packager", function(e, packagerSettings) {
   const ls = childProcess.spawn(solutoinPackagerPath, params);
   let output = [];
   ls.stdout.on("data", function(data) {
-    console.log("stdout: <" + data + "> ");
+    log.info("SolutionPackager: stdout: <" + data + "> ");
     // appendToDroidOutput(data);
+
+    // TODO Handle edge cases i.e. Solution package type did not match requested type.
+    // Attempting to unpack as managed when already exists as unmanaged
 
     output.push(data.toString());
     if (`${data}`.includes("Delete")) {
       ls.stdin.write("No\n");
-      console.log("Delete");
+      log.verbose(
+        "Prevent SolutionPackager.exe file delete. stdout message: " +
+          data.toString()
+      );
     }
   });
 
   ls.stderr.on("data", function(data) {
-    log.error("stderr: " + data);
+    log.error("Error packaging or extracting solution: " + data);
   });
 
   ls.on("close", function(code) {
     // console.log('child process exited with code ' + code);
-    if (code === 0) win.webContents.send("packager:output", "success", output);
-    else win.webContents.send("packager:output", "error", code);
+    if (code === 0) {
+      win.webContents.send("packager:output", "success", output);
+      log.info(`SolutionPacakager output: ${output.join("\n")}`);
+    } else {
+      win.webContents.send("packager:output", "error", code);
+    }
   });
 });
 
@@ -361,7 +370,9 @@ function getPackagerParameters(packagerSettings) {
     delete packagerSettings.zipFilePath;
   }
 
+  let isValid = true;
   for (var key in packagerSettings) {
+    console.log(`Key: ${key}`);
     if (
       packagerSettings[key] !== "" &&
       packagerSettings[key] !== undefined &&
@@ -370,6 +381,8 @@ function getPackagerParameters(packagerSettings) {
       switch (key) {
         case "presetName":
         case "newPresetName":
+          param = "";
+          isValid = false;
           break;
         case "clobber":
         case "localize":
@@ -383,7 +396,11 @@ function getPackagerParameters(packagerSettings) {
         default:
           param = `/${key}:${packagerSettings[key]}`;
       }
-      parameters.push(param);
+      if (isValid) {
+        parameters.push(param);
+      } else {
+        isValid = true;
+      }
     }
   }
 

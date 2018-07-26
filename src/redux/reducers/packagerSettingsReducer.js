@@ -38,7 +38,7 @@ export default function packagerSettingsReducer(
 ) {
   switch (type) {
     case UPDATE_SINGLE_PACKAGER_SETTING:
-      // Can you iterete in update?
+      delete payload.packagerSettings._id;
       return update(state, {
         current: {
           [Object.keys(payload.packagerSettings)[0]]: {
@@ -50,11 +50,14 @@ export default function packagerSettingsReducer(
     case UPDATE_ALL_PACKAGER_SETTINGS:
       return update(state, { current: { $set: payload.packagerSettings } });
     case UPDATE_PACKAGER_PRESET:
+      // Send request to update or insert DB entries
       if (state.presets[payload.packagerPreset.presetName]) {
         ipcRenderer.send("packagerPresets:update", payload.packagerPreset);
       } else {
         ipcRenderer.send("packagerPresets:insert", payload.packagerPreset);
       }
+
+      // Return updated preset
       return update(state, {
         presets: {
           [payload.packagerPreset.presetName]: { $set: payload.packagerPreset }

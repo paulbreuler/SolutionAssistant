@@ -164,6 +164,9 @@ class SolutionManagerTabs extends React.Component {
     return false;
   };
 
+  /**
+   * Packager Settings Update
+   */
   updateState = event => {
     let isDirty = false;
     if (event.type) {
@@ -210,7 +213,7 @@ class SolutionManagerTabs extends React.Component {
   };
 
   saveNewPreset = () => {
-    const newPreset = this.makeRelevantPreset(this.state);
+    const newPreset = this.makeRelevantPreset(this.state); // mark current
     newPreset.presetName = this.state.newPresetName;
     this.props.onUpdatePackagerPreset(newPreset);
     this.applySavedSettings(newPreset);
