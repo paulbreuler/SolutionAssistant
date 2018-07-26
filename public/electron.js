@@ -5,14 +5,15 @@ const log = require("electron-log");
 const fs = require("fs");
 const { app, BrowserWindow, ipcMain } = electron;
 const simpleGit = require("simple-git");
-const shell = require("node-powershell");
 const isDev = require("electron-is-dev");
 
-const solutionParser = require("../src/native/SolutionParser");
+const solutionParser = require("./SolutionParser");
 
 const Datastore = require("nedb"),
   db = new Datastore({
-    filename: `${path.dirname(__dirname)}\\assets\\datastore\\settings.store`,
+    filename: `${app.getPath(
+      "documents"
+    )}\\${app.getName()}\\datastore\\settings.store`,
     autoload: true
   });
 
@@ -45,7 +46,7 @@ function initializeApp() {
   );
 
   // create a new `splash`-Window
-  splash = new BrowserWindow({
+  let splash = new BrowserWindow({
     minwidth: 950,
     width: 1300,
     minheight: 600,
@@ -299,48 +300,49 @@ ipcMain.on("packager:retrieveDefaultExtract", function(e) {
 
 // Catch solution:unpack
 ipcMain.on("packager", function(e, packagerSettings) {
-  let ps = new shell({
-    executionPolicy: "Bypass",
-    noProfile: true
-  });
-
+  const childProcess = require("child_process"); // The power of Node.JS
   log.info(`Dynamics 365 solution to unpack: ${packagerSettings.zipFile}`);
 
-  let cmd = buildPackagerCommand(packagerSettings);
-  console.log(cmd);
-
-  ps.addCommand(cmd);
-  log.info(`Running PowerShell Command: ${cmd}`);
-  ps.invoke()
-    .then(output => {
-      log.info(`\n${output}`);
-      win.webContents.send("packager:output", "success", output);
-      ps.dispose();
-    })
-    .catch(err => {
-      log.error(err.replace(/(\[39m|\[31m)/g, ""));
-      win.webContents.send("packager:output", "error", err);
-      ps.dispose();
-    });
-
-  // Called on dispose
-  ps.on("end", code => {
-    console.log("Command complete");
-  });
-});
-
-function buildPackagerCommand(packagerSettings) {
-  let cmd = "";
+  let params = getPackagerParameters(packagerSettings);
+  console.log(process.env);
 
   let solutoinPackagerPath = null;
   if (isDev) {
-    solutoinPackagerPath = `& '${app.getAppPath()}\\assets\\powershell\\SolutionPackager.exe' `;
+    solutoinPackagerPath = `./assets/powershell/SolutionPackager.exe `;
   } else {
-    solutoinPackagerPath = `& '${
+    solutoinPackagerPath = `${
       process.resourcesPath
-    }\\powershell\\SolutionPackager.exe' `;
+    }/powershell/SolutionPackager.exe' `;
+    solutoinPackagerPath = solutoinPackagerPath
+      .replace(/[a-zA-Z]:\\/i, "/c/")
+      .replace("\\", "/");
   }
-  let parameters = "";
+
+  const ls = childProcess.spawn(solutoinPackagerPath, params);
+  ls.stdout.on("data", function(data) {
+    //console.log("stdout: <" + data + "> ");
+    // appendToDroidOutput(data);
+    win.webContents.send(
+      "packager:output",
+      "success",
+      "stdout: <" + data + "> \n"
+    );
+  });
+
+  ls.stderr.on("data", function(data) {
+    win.webContents.send("packager:output", "error", data);
+    log.error("stderr: " + data);
+  });
+
+  ls.on("close", function(code) {
+    // console.log('child process exited with code ' + code);
+    if (code == 0) console.log("child process complete.");
+    else console.log("child process exited with code " + code);
+  });
+});
+
+function getPackagerParameters(packagerSettings) {
+  let parameters = [];
   let param = "";
 
   // If we are packing the solution combine zipFilePath and zipFile for command line arg
@@ -371,19 +373,16 @@ function buildPackagerCommand(packagerSettings) {
         case "folder":
         case "zipFile":
           // Quotes to handle paths with spaces
-          param = `/${key} '${packagerSettings[key]}' `;
+          param = `/${key}:'${packagerSettings[key]}' `;
           break;
         default:
-          param = `/${key} ${packagerSettings[key]} `;
-          console.log(param);
+          param = `/${key}:${packagerSettings[key]} `;
       }
-      parameters += param;
+      parameters.push(param);
     }
   }
 
-  cmd = `${solutoinPackagerPath} ${parameters}`;
-
-  return cmd;
+  return parameters;
 }
 
 function getFileExtension(filename) {

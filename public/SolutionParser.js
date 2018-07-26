@@ -6,7 +6,6 @@
 const path = require("path");
 const fs = require("fs");
 const xml2js = require("xml2js");
-const shell = require("node-powershell");
 const simpleGit = require("simple-git");
 /**
  * Explores recursively a directory and returns all the filepaths and folderpaths in the callback.
@@ -142,14 +141,17 @@ function parseXml2js(parser, data, log, win, changes, callback) {
 
       entity.fields = fields;
 
-      let filter = changes.files.filter(change => {
-        let str = result.Entity.EntityInfo[0].entity[0].$.Name;
-        let match = `Entities.*${str}.*Entity.xml`;
-        return change.file.match(match);
-      });
+      let filter = [];
+      if (changes.files) {
+        filter = changes.files.filter(change => {
+          let str = result.Entity.EntityInfo[0].entity[0].$.Name;
+          let match = `Entities.*${str}.*Entity.xml`;
+          return change.file.match(match);
+        });
 
-      if (filter.length > 0) {
-        entity.isModified = true;
+        if (filter.length > 0) {
+          entity.isModified = true;
+        }
       }
       win.webContents.send("versionControl:EntityData", result, entity);
     }
