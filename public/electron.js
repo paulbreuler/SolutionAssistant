@@ -362,8 +362,15 @@ function getPackagerParameters(packagerSettings) {
   }
 
   for (var key in packagerSettings) {
-    if (packagerSettings[key] !== "" && packagerSettings[key] !== undefined) {
+    if (
+      packagerSettings[key] !== "" &&
+      packagerSettings[key] !== undefined &&
+      !parameters.includes(key)
+    ) {
       switch (key) {
+        case "presetName":
+        case "newPresetName":
+          break;
         case "clobber":
         case "localize":
           param = `${packagerSettings[key]}`;
