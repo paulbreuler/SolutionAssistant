@@ -13,13 +13,15 @@ function RegularButton({ ...props }) {
     children,
     fullWidth,
     disabled,
+    spacer,
     ...rest
   } = props;
   const btnClasses = cx({
     [classes[color]]: color,
     [classes.round]: round,
     [classes.fullWidth]: fullWidth,
-    [classes.disabled]: disabled
+    [classes.disabled]: disabled,
+    [classes.spacer]: spacer
   });
   return (
     <Button {...rest} className={classes.button + " " + btnClasses}>

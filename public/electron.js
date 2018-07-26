@@ -4,29 +4,32 @@ const path = require("path");
 const log = require("electron-log");
 const fs = require("fs");
 const { app, BrowserWindow, ipcMain } = electron;
-
-const shell = require("node-powershell");
+const simpleGit = require("simple-git");
 const isDev = require("electron-is-dev");
 
-/*const Datastore = require("nedb"),
+const solutionParser = require("./SolutionParser");
+
+const Datastore = require("nedb"),
   db = new Datastore({
-    filename: `${path.dirname(__dirname)}\\assets\\datastore\\settings.store`,
+    filename: `${app.getPath(
+      "documents"
+    )}\\${app.getName()}\\datastore\\settings.store`,
     autoload: true
   });
-*/
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let win;
 
 function initializeApp() {
-  log.transports.file.level = "info";
+  log.transports.file.level = "verbose";
   // Create the browser window.
   win = new BrowserWindow({
     minwidth: 950,
     width: 1300,
     minheight: 600,
-    height: 850
+    height: 850,
+    show: false
   });
   // and load the index.html of the app.
   //win.loadFile("public/index.html");
@@ -41,6 +44,28 @@ function initializeApp() {
       "../build/index.html"
     )}`
   );
+
+  // create a new `splash`-Window
+  let splash = new BrowserWindow({
+    minwidth: 950,
+    width: 1300,
+    minheight: 600,
+    height: 850,
+    frame: false,
+    alwaysOnTop: true
+  });
+  splash.loadURL(
+    isDev
+      ? "http://localhost:3000/splash.html"
+      : `file://${path.join(__dirname, "../build/index.html")}`
+  );
+
+  // if main window is ready to show, then destroy the splash window and show up the main window
+  win.once("ready-to-show", () => {
+    splash.destroy();
+    win.show();
+  });
+
   // Open the DevTools.
   //win.webContents.openDevTools();
 
@@ -54,6 +79,48 @@ function initializeApp() {
   });
 }
 
+ipcMain.on("versionControl:requestEntityData", function(e, folderPath) {
+  solutionParser.parseEntityData(log, win, folderPath);
+});
+
+/**
+ * Commit to git repository. Initializes if this is the first commit.
+ * To-Do: Have user init repo, then allow commit?
+ */
+ipcMain.on("git:commit", function(e, summary, description, repoPath) {
+  console.log(
+    `Summary: ${summary} \nDescription: ${description} \nRepo Path: ${repoPath}`
+  );
+  simpleGit(repoPath).diffSummary(function(err, status) {
+    console.log(status.files[0]);
+  });
+
+  /*
+  simpleGit()
+    .cwd(repoPath)
+    .add("./*")
+    .commit(`summary: ${summary}, desc: ${description}`, () => {
+      log.info(`Changes commited to repo: ${repoPath}`);
+    });
+    */
+});
+
+ipcMain.on("git:init", function(e, repoPath) {
+  const gitP = require("simple-git/promise");
+  const git = gitP(repoPath);
+  git
+    .checkIsRepo()
+    .then(isRepo => !isRepo && initialiseRepo(git))
+    .then(() => log.info(`Initialized repo for directory ${repoPath}`));
+});
+
+/**
+ * Initialize git repository
+ * @param {simpleGit} git
+ */
+function initialiseRepo(git) {
+  return git.init().then(() => {});
+}
 //setDefaultSettings();
 
 // This method will be called when Electron has finished
@@ -98,41 +165,59 @@ function setDefaultSettings() {
 /*
   Retrieve Settings
 */
-/*
-ipcMain.on("settings:retrieve", function(e) {
-  db.findOne({ _id: "id1" }, { restEndpoint: 1, repoPath: 1 }, function(
-    err,
-    settings
-  ) {
-    win.webContents.send("settings:update", settings);
+ipcMain.on("packagerPresets:retrieve", function(e) {
+  db.find({ presetName: { $exists: true } }, function(err, presets) {
+    win.webContents.send("packagerPresets:acquired", presets);
   });
 });
-*/
 
-// TO-DO this is a bit complex. Simplify!
-// This will not be a great solution for a case with many settings
 /*
   Update Settings
+
+  Preset:
+  {
+    _id: string,
+    presetName: string,
+    action: string, // {"extract"|"pack"}
+    zipFile: string, // <file path>
+    zipFilePath: string,
+    folder: string, // <folder path>
+    packageType: string, // {"unmanaged"|"managed"|"both"}
+    allowWrite: string, // {"yes"|"no"}
+    allowDelete: string, // {"yes"|"no"|"prompt"}
+    clobber: string,
+    errorLevel: string, // {"yes"|"no"|"prompt"}
+    map: string, // <file path>
+    nologo: string,
+    log: string, // <file path>
+    sourceLoc: string, // <string>
+    localize: string
+  }
 */
-/*
-ipcMain.on("settings:update", function(e, settings) {
+ipcMain.on("packagerPresets:update", function(e, preset) {
   db.update(
     {
-      _id: "id1"
+      presetName: `${preset.presetName}`
     },
     {
-      $set: {
-        repoPath: settings.repoPath,
-        restEndpoint: settings.restEndpoint
-      }
+      $set: { ...preset }
     },
-    { multi: true },
+    {},
     function(err, numReplaced) {
       // Update callbackcode here
+      // db.find({ presetName: { $exists: true } }, function(
+      //   err,
+      //   presets
+      // ) {
+      //   win.webContents.send("packagerPresets:acquired", presets);
+      // });
     }
   );
 });
-*/
+
+ipcMain.on("packagerPresets:insert", function(e, preset) {
+  db.insert({ ...preset }, function(err, newDoc) {});
+});
 
 /*
 ipcMain.on("settings:update", function(e, settings) {
@@ -189,6 +274,7 @@ ipcMain.on("settings:update", function(e, settings) {
 ipcMain.on("packager:retrieveDefaultExtract", function(e) {
   win.webContents.send("packager:defaultExtract", {
     packagerSettings: {
+      presetName: "Default",
       action: "extract", // {Extract|Pack}
       zipFile: "", // <file path>
       zipFilePath: `${app.getPath(
@@ -213,56 +299,65 @@ ipcMain.on("packager:retrieveDefaultExtract", function(e) {
 
 // Catch solution:unpack
 ipcMain.on("packager", function(e, packagerSettings) {
-  let ps = new shell({
-    executionPolicy: "Bypass",
-    noProfile: true
-  });
-
+  const childProcess = require("child_process"); // The power of Node.JS
   log.info(`Dynamics 365 solution to unpack: ${packagerSettings.zipFile}`);
 
-  let cmd = buildPackagerCommand(packagerSettings);
-  console.log(cmd);
-
-  ps.addCommand(cmd);
-  log.info(`Running PowerShell Command: ${cmd}`);
-  ps.invoke()
-    .then(output => {
-      log.info(`\n${output}`);
-      win.webContents.send("packager:output", "success", output);
-      ps.dispose();
-    })
-    .catch(err => {
-      log.error(err.replace(/(\[39m|\[31m)/g, ""));
-      win.webContents.send("packager:output", "error", err);
-      ps.dispose();
-    });
-
-  // Called on dispose
-  ps.on("end", code => {
-    console.log("Command complete");
-  });
-});
-
-function buildPackagerCommand(packagerSettings) {
-  let cmd = "";
+  let params = getPackagerParameters(packagerSettings);
 
   let solutoinPackagerPath = null;
   if (isDev) {
-    solutoinPackagerPath = `& '${app.getAppPath()}\\assets\\powershell\\SolutionPackager.exe' `;
+    solutoinPackagerPath = `./assets/powershell/SolutionPackager.exe `;
   } else {
-    solutoinPackagerPath = `& '${
+    solutoinPackagerPath = `${
       process.resourcesPath
-    }\\powershell\\SolutionPackager.exe' `;
+    }/powershell/SolutionPackager.exe' `;
+    solutoinPackagerPath = convertPathToShellPath(solutoinPackagerPath);
   }
-  let parameters = "";
+  log.verbose(
+    `About to run solution packager shell command ${solutoinPackagerPath} \n\t- parameters: ${params}`
+  );
+  const ls = childProcess.spawn(solutoinPackagerPath, params);
+  let output = [];
+  ls.stdout.on("data", function(data) {
+    log.info("SolutionPackager: stdout: <" + data + "> ");
+    // appendToDroidOutput(data);
+
+    // TODO Handle edge cases i.e. Solution package type did not match requested type.
+    // Attempting to unpack as managed when already exists as unmanaged
+
+    output.push(data.toString());
+    if (`${data}`.includes("Delete")) {
+      ls.stdin.write("No\n");
+      log.verbose(
+        "Prevent SolutionPackager.exe file delete. stdout message: " +
+          data.toString()
+      );
+    }
+  });
+
+  ls.stderr.on("data", function(data) {
+    log.error("Error packaging or extracting solution: " + data);
+  });
+
+  ls.on("close", function(code) {
+    // console.log('child process exited with code ' + code);
+    if (code === 0) {
+      win.webContents.send("packager:output", "success", output);
+      log.info(`SolutionPacakager output: ${output.join("\n")}`);
+    } else {
+      win.webContents.send("packager:output", "error", code);
+    }
+  });
+});
+
+function getPackagerParameters(packagerSettings) {
+  let parameters = [];
   let param = "";
 
   // If we are packing the solution combine zipFilePath and zipFile for command line arg
   // Electron throws error when trying to use
   if (packagerSettings.action === "pack") {
-    let zipFile = `${packagerSettings.zipFilePath}\\${
-      packagerSettings.zipFile
-    }`;
+    let zipFile = `${packagerSettings.zipFilePath}/${packagerSettings.zipFile}`;
     packagerSettings.zipFile = zipFile;
 
     delete packagerSettings.zipFilePath;
@@ -275,29 +370,45 @@ function buildPackagerCommand(packagerSettings) {
     delete packagerSettings.zipFilePath;
   }
 
+  let isValid = true;
   for (var key in packagerSettings) {
-    if (packagerSettings[key] !== "" && packagerSettings[key] !== undefined) {
+    console.log(`Key: ${key}`);
+    if (
+      packagerSettings[key] !== "" &&
+      packagerSettings[key] !== undefined &&
+      !parameters.includes(key)
+    ) {
       switch (key) {
+        case "presetName":
+        case "newPresetName":
+          param = "";
+          isValid = false;
+          break;
         case "clobber":
         case "localize":
-          param = `${packagerSettings[key]} `;
+          param = `${packagerSettings[key]}`;
           break;
         case "folder":
         case "zipFile":
           // Quotes to handle paths with spaces
-          param = `/${key} '${packagerSettings[key]}' `;
+          param = `/${key}:${packagerSettings[key]}`;
           break;
         default:
-          param = `/${key} ${packagerSettings[key]} `;
-          console.log(param);
+          param = `/${key}:${packagerSettings[key]}`;
       }
-      parameters += param;
+      if (isValid) {
+        parameters.push(param);
+      } else {
+        isValid = true;
+      }
     }
   }
 
-  cmd = `${solutoinPackagerPath} ${parameters}`;
+  return parameters;
+}
 
-  return cmd;
+function convertPathToShellPath(path) {
+  return path.replace(/[a-zA-Z]:\\/i, "/c/").replace(/\\/g, "/");
 }
 
 function getFileExtension(filename) {

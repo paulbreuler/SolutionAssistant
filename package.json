@@ -37,7 +37,6 @@
     "electron-log": "^2.2.16",
     "immutability-helper": "^2.7.1",
     "nedb": "^1.8.0",
-    "node-powershell": "^3.3.1",
     "perfect-scrollbar": "1.4.0",
     "react": "16.4.1",
     "react-chartist": "0.13.1",
@@ -50,7 +49,9 @@
     "react-swipeable-views": "0.12.14",
     "react-treeview": "^0.4.7",
     "redux": "^4.0.0",
-    "redux-thunk": "^2.3.0"
+    "redux-thunk": "^2.3.0",
+    "simple-git": "^1.96.0",
+    "xml2js": "^0.4.19"
   },
   "scripts": {
     "electron-dev": "concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",

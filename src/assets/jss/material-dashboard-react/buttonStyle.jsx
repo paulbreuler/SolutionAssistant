@@ -131,6 +131,9 @@ const buttonStyle = {
   disabled: {
     opacity: "0.65",
     pointerEvents: "none"
+  },
+  spacer: {
+    margin: "35px 0 0 0"
   }
 };
 

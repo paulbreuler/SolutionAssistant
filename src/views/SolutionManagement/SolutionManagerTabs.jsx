@@ -6,8 +6,19 @@ import Tabs from "@material-ui/core/Tabs";
 import Tab from "@material-ui/core/Tab";
 import Typography from "@material-ui/core/Typography";
 import { Grid } from "@material-ui/core";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 
-import { CustomInput, ItemGrid, CustomSelect, FolderInput } from "components";
+import {
+  Button,
+  CustomInput,
+  ItemGrid,
+  CustomSelect,
+  FolderInput
+} from "components";
 
 const electron = window.require("electron");
 const ipcRenderer = electron.ipcRenderer;
@@ -29,6 +40,9 @@ const styles = theme => ({
   root: {
     flexGrow: 1,
     backgroundColor: theme.palette.background.paper
+  },
+  spacer: {
+    margin: "27px 0 0 0"
   }
 });
 
@@ -55,10 +69,10 @@ class SolutionManagerTabs extends React.Component {
     super(props);
     this.updateState = this.updateState.bind(this);
     this.validate = this.validate.bind(this);
-    this.applySavedSettings = this.applySavedSettings.bind(this);
 
     this.state = {
-      value: 1,
+      tabValue: 1,
+      presetName: props.packagerSettings.presetName,
       action: props.packagerSettings.action, // {Extract|Pack}
       zipFile: props.packagerSettings.zipFile, // <file path>
       folder: props.packagerSettings.folder, // <folder path>
@@ -72,7 +86,10 @@ class SolutionManagerTabs extends React.Component {
       log: props.packagerSettings.log, // <file path>
       sourceLoc: props.packagerSettings.sourceLoc, // <string>
       localize: props.packagerSettings.localize,
-      invalidInput: false
+      invalidInput: false,
+      isDirty: false,
+      dialogOpen: false,
+      newPresetName: ""
     };
   }
 
@@ -80,10 +97,8 @@ class SolutionManagerTabs extends React.Component {
     // Apply saved settings loaded from electron main
     ipcRenderer.on("packager:defaultExtract", (event, { packagerSettings }) => {
       this.applySavedSettings(packagerSettings);
+      ipcRenderer.send("packagerPresets:insert", packagerSettings);
     });
-
-    // Request default settings for extract. TODO Make buttons for default extract and pack?
-    ipcRenderer.send("packager:retrieveDefaultExtract");
   }
 
   componentWillUnmount() {
@@ -95,7 +110,16 @@ class SolutionManagerTabs extends React.Component {
     );
   }
 
-  applySavedSettings(packagerSettings) {
+  componentDidUpdate(prevProps) {
+    if (
+      prevProps.loadedFromDB !== this.props.loadedFromDB &&
+      this.props.loadedFromDB
+    ) {
+      this.applySavedSettings(this.props.packagerSettings);
+    }
+  }
+
+  applySavedSettings = packagerSettings => {
     let e;
     let event = {
       target: {
@@ -104,29 +128,100 @@ class SolutionManagerTabs extends React.Component {
       }
     };
     for (e in packagerSettings) {
-      if (packagerSettings[e] !== "") {
-        event.target.value = packagerSettings[e];
-        event.target.name = [e];
-        this.updateState(event);
-      }
+      //if (packagerSettings[e] !== "") {
+      event.target.value = packagerSettings[e];
+      event.target.name = [e];
+      this.updateState(event);
+      //}
     }
-  }
-
-  handleChange = event => {
-    this.setState({ [event.target.name]: event.target.value });
   };
 
+  makeRelevantPreset = fullState => {
+    const {
+      tabValue,
+      invalidInput,
+      isDirty,
+      dialogOpen,
+      newPresetName,
+      ...relevantPreset
+    } = fullState;
+    return relevantPreset;
+  };
+
+  saveCurrentPreset = () => {
+    this.props.onUpdatePackagerPreset(this.makeRelevantPreset(this.state));
+  };
+
+  isDifferentFromState = preset => {
+    const relevantState = this.makeRelevantPreset(this.state);
+    for (let key in relevantState) {
+      if (relevantState.hasOwnProperty(key)) {
+        if (relevantState[key] !== preset[key]) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  /**
+   * Packager Settings Update
+   */
   updateState = event => {
+    let isDirty = false;
+    if (event.type) {
+      isDirty = this.isDifferentFromState(
+        this.props.packagerPresets[this.state.presetName]
+      );
+      if (
+        event.target.value !==
+        this.props.packagerPresets[this.state.presetName][event.target.name]
+      ) {
+        isDirty = true;
+      }
+    }
+
     this.setState({
-      [event.target.name]: event.target.value
+      [event.target.name]: event.target.value,
+      isDirty
     });
     this.props.onUpdatePackagerSetting({
       [event.target.name]: event.target.value
     });
   };
 
-  handleChange = (event, value) => {
-    this.setState({ value });
+  updateNewPresetName = event => {
+    this.setState({
+      newPresetName: event.target.value
+    });
+  };
+
+  handlePresetChange = event => {
+    this.applySavedSettings(this.props.packagerPresets[event.target.value]);
+  };
+
+  openNewPresetDialog = () => {
+    this.setState({
+      dialogOpen: true
+    });
+  };
+
+  closeNewPresetDialog = () => {
+    this.setState({
+      dialogOpen: false
+    });
+  };
+
+  saveNewPreset = () => {
+    const newPreset = this.makeRelevantPreset(this.state); // mark current
+    newPreset.presetName = this.state.newPresetName;
+    this.props.onUpdatePackagerPreset(newPreset);
+    this.applySavedSettings(newPreset);
+    this.setState({ dialogOpen: false, newPresetName: "" });
+  };
+
+  handleTabChange = (event, tabValue) => {
+    this.setState({ tabValue });
   };
 
   buildTabContent(props) {}
@@ -141,7 +236,7 @@ class SolutionManagerTabs extends React.Component {
 
   render() {
     const { classes } = this.props;
-    const { value } = this.state;
+    const { tabValue } = this.state;
 
     //store errors for all fields
     const errors = this.validate();
@@ -155,14 +250,58 @@ class SolutionManagerTabs extends React.Component {
     return (
       <div className={classes.root}>
         <AppBar position="static" color="default">
-          <Tabs value={value} onChange={this.handleChange}>
+          <Tabs value={tabValue} onChange={this.handleTabChange}>
             <Tab key={1} value={1} label="Packager Settings" />
             <Tab key={2} value={2} label="Test Tab" />
           </Tabs>
         </AppBar>
-        {value === 1 && (
+        {tabValue === 1 && (
           <TabContainer key={1}>
             <Grid container>
+              <ItemGrid xs={4}>
+                <CustomSelect
+                  value={this.state.presetName}
+                  labelText="Preset"
+                  inputProps={{
+                    id: "preset-select",
+                    name: "preset"
+                  }}
+                  labelProps={{
+                    required: true
+                  }}
+                  handleStateLift={this.handlePresetChange}
+                  formControlProps={{
+                    fullWidth: true
+                  }}
+                  menuItems={Object.keys(this.props.packagerPresets).map(
+                    presetName => ({
+                      value: `${presetName}`,
+                      text: `${presetName}`
+                    })
+                  )}
+                />
+              </ItemGrid>
+              <ItemGrid xs={4}>
+                <Button
+                  color="white"
+                  onClick={this.saveCurrentPreset}
+                  disabled={!this.state.isDirty}
+                  spacer={true}
+                  fullWidth
+                >
+                  Save Preset
+                </Button>
+              </ItemGrid>
+              <ItemGrid xs={4}>
+                <Button
+                  color="info"
+                  onClick={this.openNewPresetDialog}
+                  spacer={true}
+                  fullWidth
+                >
+                  Save New Preset
+                </Button>
+              </ItemGrid>
               <ItemGrid xs={12} sm={12} md={2}>
                 <CustomSelect
                   value={this.state.action}
@@ -353,9 +492,46 @@ class SolutionManagerTabs extends React.Component {
                 />
               </ItemGrid>
             </Grid>
+            <Dialog
+              open={this.state.dialogOpen}
+              onClose={this.closeNewPresetDialog}
+              aria-labelledby="form-dialog-title"
+            >
+              <DialogTitle id="form-dialog-title">Save New Preset</DialogTitle>
+              <DialogContent>
+                <DialogContentText>
+                  Make a name for the new preset
+                </DialogContentText>
+                <CustomInput
+                  value={this.state.newPresetName}
+                  labelText="Preset Name"
+                  id="new-preset-name"
+                  handleStateLift={this.updateNewPresetName}
+                  formControlProps={{
+                    fullWidth: true,
+                    autoFocus: true
+                  }}
+                  inputProps={{
+                    name: "newPresetName"
+                  }}
+                />
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={this.closeNewPresetDialog} color="white">
+                  Cancel
+                </Button>
+                <Button
+                  onClick={this.saveNewPreset}
+                  color="primary"
+                  disabled={this.state.newPresetName === ""}
+                >
+                  Save
+                </Button>
+              </DialogActions>
+            </Dialog>
           </TabContainer>
         )}
-        {value === 2 && (
+        {tabValue === 2 && (
           <TabContainer key={2}>
             <Grid container>
               <ItemGrid xs={12} sm={12} md={2} />
@@ -368,7 +544,8 @@ class SolutionManagerTabs extends React.Component {
 }
 
 SolutionManagerTabs.propTypes = {
-  classes: PropTypes.object.isRequired
+  classes: PropTypes.object.isRequired,
+  loadedFromDB: PropTypes.bool
 };
 
 export default withStyles(styles)(SolutionManagerTabs);

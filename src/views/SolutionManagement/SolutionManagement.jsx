@@ -10,10 +10,15 @@ import {
   FolderInput
 } from "components";
 import { connect } from "react-redux";
-import { updatePackagerSetting } from "../../redux";
-import { addNotification, removeNotification } from "../../redux";
+import {
+  addNotification,
+  removeNotification,
+  updatePackagerSetting,
+  updatePackagerPreset,
+  updateAllPackagerSettings
+} from "../../redux";
 import SolutionManagerTabs from "./SolutionManagerTabs";
-import { AddAlert, Message } from "@material-ui/icons";
+import { AddAlert } from "@material-ui/icons";
 
 const constants = require("../../assets/Strings.js");
 
@@ -27,36 +32,64 @@ class SolutionManagement extends React.Component {
     this.handleError = this.handleError.bind(this);
     this.showNotification = this.showNotification.bind(this);
     this.splitZipFileString = this.splitZipFileString.bind(this);
+    this.handlePackagerOutput = this.handlePackagerOutput.bind(this);
   }
 
   state = {
     solutionFile: "",
-    count: 0
+    count: 0,
+    isPacking: false,
+    packageFolder: "",
+    loadedFromDB: false
   };
 
   componentDidMount() {
     ipcRenderer.on("packager:output", (event, type, output) => {
-      if (type === "success") {
-        this.showNotification({
-          message: "Solution extracted successfully",
-          color: "success",
-          icon: AddAlert
-        });
+      this.handlePackagerOutput(event, type, output);
+    });
+
+    ipcRenderer.on("packagerPresets:acquired", (event, presets) => {
+      if (presets.length === 0) {
+        ipcRenderer.send("packager:retrieveDefaultExtract");
       } else {
-        this.showNotification({
-          message: `Solution failed to extract! please check log file located at %appdata%\\dynamics-solution-assistant`,
-          color: "danger",
-          icon: AddAlert
+        presets.forEach(preset => {
+          this.props.onUpdatePackagerPreset(preset);
+          if (preset.presetName === "Default") {
+            const { _id, presetName, ...presetToUpdate } = preset;
+            this.props.onUpdateAllPackagerSettings(presetToUpdate);
+            this.setState({ loadedFromDB: true });
+          }
         });
       }
-      this.handleError(event);
     });
+    ipcRenderer.send("packagerPresets:retrieve");
   }
 
   componentWillUnmount() {
-    ipcRenderer.removeListener("packager:output", err => {
-      this.handleError(err);
+    ipcRenderer.removeAllListeners("packager:output");
+    ipcRenderer.removeAllListeners("packagerPresets:acquired");
+  }
+
+  handlePackagerOutput(event, type, output) {
+    if (type === "success") {
+      this.showNotification({
+        message: "Solution extracted successfully",
+        color: "success",
+        icon: AddAlert
+      });
+    } else {
+      this.showNotification({
+        message: `Solution failed to extract! please check log file located at %appdata%\\dynamics-solution-assistant`,
+        color: "danger",
+        icon: AddAlert
+      });
+    }
+    this.setState({
+      isPacking: false,
+      packageFolder:
+        type === "success" ? this.props.packagerSettings.folder : ""
     });
+    this.handleError(event);
   }
 
   handleError(err) {
@@ -137,13 +170,20 @@ class SolutionManagement extends React.Component {
         isValid = false;
       }
     }
-    if (isValid) ipcRenderer.send("packager", this.props.packagerSettings);
+    if (isValid) {
+      ipcRenderer.send("packager", this.props.packagerSettings);
+      this.setState({ isPacking: true });
+    }
   }
 
   splitZipFileString(str) {
     let path = str.substring(0, str.lastIndexOf("\\"));
     let file = this.props.packagerSettings.zipFile.split("\\").pop();
     return { path, file };
+  }
+
+  showInFileExplorer() {
+    electron.shell.showItemInFolder(this.state.packageFolder);
   }
 
   showNotification = notification => {
@@ -208,7 +248,7 @@ class SolutionManagement extends React.Component {
                   {(this.props.packagerSettings.action === constants.EXTRACT ||
                     this.props.packagerSettings.action === "") && (
                     <Button
-                      color="primary"
+                      color="white"
                       onClick={this.browseForSolutionFile.bind(this)}
                     >
                       Browse
@@ -219,14 +259,24 @@ class SolutionManagement extends React.Component {
                       color="primary"
                       onClick={this.handleSolutionPackaging.bind(this)}
                       disabled={
-                        this.props.packagerSettings.zipFile.length === 0 &&
-                        this.props.packagerSettings.action === constants.EXTRACT
+                        (this.props.packagerSettings.zipFile.length === 0 &&
+                          this.props.packagerSettings.action ===
+                            constants.EXTRACT) ||
+                        this.state.isPacking
                       }
                     >
                       {this.props.packagerSettings.action === "extract"
                         ? "Extract "
                         : "Pack "}
                       Solution
+                    </Button>
+                  )}
+                  {this.state.packageFolder && (
+                    <Button
+                      color="rose"
+                      onClick={this.showInFileExplorer.bind(this)}
+                    >
+                      View in File Explorer
                     </Button>
                   )}
                 </React.Fragment>
@@ -237,9 +287,12 @@ class SolutionManagement extends React.Component {
             <SolutionManagerTabs
               packagerSettings={this.props.packagerSettings}
               onUpdatePackagerSetting={this.props.onUpdatePackagerSetting}
+              packagerPresets={this.props.packagerPresets}
+              onUpdatePackagerPreset={this.props.onUpdatePackagerPreset}
+              loadedFromDB={this.state.loadedFromDB}
             />
           </ItemGrid>
-          <NotificationManager displayDuration={6000} />
+          <NotificationManager />
         </Grid>
       </div>
     );
@@ -247,15 +300,20 @@ class SolutionManagement extends React.Component {
 }
 
 SolutionManagement.propTypes = {
-  onUpdatePackagerSetting: PropTypes.func.isRequired
+  onUpdatePackagerSetting: PropTypes.func.isRequired,
+  onUpdateAllPackagerSettings: PropTypes.func.isRequired,
+  onUpdatePackagerPreset: PropTypes.func.isRequired
 };
 
 const mapStateToProps = state => ({
-  packagerSettings: state.packagerSettings
+  packagerSettings: state.packagerSettings.current,
+  packagerPresets: state.packagerSettings.presets
 });
 
 const mapActionsToProps = {
   onUpdatePackagerSetting: updatePackagerSetting,
+  onUpdateAllPackagerSettings: updateAllPackagerSettings,
+  onUpdatePackagerPreset: updatePackagerPreset,
   onAddNotification: addNotification,
   onRemoveNotification: removeNotification
 };
