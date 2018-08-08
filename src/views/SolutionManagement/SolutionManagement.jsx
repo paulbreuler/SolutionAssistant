@@ -245,40 +245,52 @@ class SolutionManagement extends React.Component {
               }
               footer={
                 <React.Fragment>
-                  {(this.props.packagerSettings.action === constants.EXTRACT ||
-                    this.props.packagerSettings.action === "") && (
-                    <Button
-                      color="white"
-                      onClick={this.browseForSolutionFile.bind(this)}
-                    >
-                      Browse
-                    </Button>
-                  )}
-                  {this.props.packagerSettings.action !== "" && (
-                    <Button
-                      color="primary"
-                      onClick={this.handleSolutionPackaging.bind(this)}
-                      disabled={
-                        (this.props.packagerSettings.zipFile.length === 0 &&
-                          this.props.packagerSettings.action ===
-                            constants.EXTRACT) ||
-                        this.state.isPacking
-                      }
-                    >
-                      {this.props.packagerSettings.action === "extract"
-                        ? "Extract "
-                        : "Pack "}
-                      Solution
-                    </Button>
-                  )}
-                  {this.state.packageFolder && (
-                    <Button
-                      color="rose"
-                      onClick={this.showInFileExplorer.bind(this)}
-                    >
-                      View in File Explorer
-                    </Button>
-                  )}
+                  <Grid container>
+                    {(this.props.packagerSettings.action ===
+                      constants.EXTRACT ||
+                      this.props.packagerSettings.action === "") && (
+                      <ItemGrid xs={6}>
+                        <Button
+                          color="white"
+                          onClick={this.browseForSolutionFile.bind(this)}
+                          fullWidth
+                        >
+                          Browse
+                        </Button>
+                      </ItemGrid>
+                    )}
+                    {this.props.packagerSettings.action !== "" && (
+                      <ItemGrid xs={6}>
+                        <Button
+                          color="primary"
+                          onClick={this.handleSolutionPackaging.bind(this)}
+                          disabled={
+                            (this.props.packagerSettings.zipFile.length === 0 &&
+                              this.props.packagerSettings.action ===
+                                constants.EXTRACT) ||
+                            this.state.isPacking
+                          }
+                          fullWidth
+                        >
+                          {this.props.packagerSettings.action === "extract"
+                            ? "Extract "
+                            : "Pack "}
+                          Solution
+                        </Button>
+                      </ItemGrid>
+                    )}
+                    {this.state.packageFolder && (
+                      <ItemGrid xs={12}>
+                        <Button
+                          color="rose"
+                          onClick={this.showInFileExplorer.bind(this)}
+                          fullWidth
+                        >
+                          View in File Explorer
+                        </Button>
+                      </ItemGrid>
+                    )}
+                  </Grid>
                 </React.Fragment>
               }
             />

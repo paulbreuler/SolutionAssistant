@@ -69,6 +69,7 @@ class SolutionManagerTabs extends React.Component {
     super(props);
     this.updateState = this.updateState.bind(this);
     this.validate = this.validate.bind(this);
+    this.resetForm = this.resetForm.bind(this);
 
     this.state = {
       tabValue: 1,
@@ -119,6 +120,13 @@ class SolutionManagerTabs extends React.Component {
     }
   }
 
+  /**
+   * @description Clears unsaved changes
+   */
+  resetForm = () => {
+    this.setState(this.props.packagerSettings);
+  };
+
   applySavedSettings = packagerSettings => {
     let e;
     let event = {
@@ -128,11 +136,9 @@ class SolutionManagerTabs extends React.Component {
       }
     };
     for (e in packagerSettings) {
-      //if (packagerSettings[e] !== "") {
       event.target.value = packagerSettings[e];
       event.target.name = [e];
       this.updateState(event);
-      //}
     }
   };
 
@@ -165,7 +171,7 @@ class SolutionManagerTabs extends React.Component {
   };
 
   /**
-   * Packager Settings Update
+   * Packager settings state update
    */
   updateState = event => {
     let isDirty = false;
@@ -185,6 +191,7 @@ class SolutionManagerTabs extends React.Component {
       [event.target.name]: event.target.value,
       isDirty
     });
+
     this.props.onUpdatePackagerSetting({
       [event.target.name]: event.target.value
     });
