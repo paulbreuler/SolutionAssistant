@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 // react plugin for creating charts
-import { ContentCopy, Warning } from "@material-ui/icons";
+import { Warning } from "@material-ui/icons";
 import { withStyles, Grid } from "@material-ui/core";
 
 import { StatsCard, ItemGrid } from "components";
@@ -25,7 +25,7 @@ class Dashboard extends React.Component {
         <Grid container>
           <ItemGrid xs={12} sm={6} md={3}>
             <StatsCard
-              icon={ContentCopy}
+              icon={Warning}
               iconColor="orange"
               title="Used Space"
               description="49/50"
