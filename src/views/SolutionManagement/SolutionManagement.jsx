@@ -55,7 +55,7 @@ class SolutionManagement extends React.Component {
         presets.forEach(preset => {
           this.props.onUpdatePackagerPreset(preset);
           if (preset.presetName === "Default") {
-            const { _id, presetName, ...presetToUpdate } = preset;
+            const { _id, ...presetToUpdate } = preset;
             this.props.onUpdateAllPackagerSettings(presetToUpdate);
             this.setState({ loadedFromDB: true });
           }

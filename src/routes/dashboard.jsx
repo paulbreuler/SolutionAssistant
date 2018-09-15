@@ -19,7 +19,7 @@ const dashboardRoutes = [
     path: "/versionControl",
     sidebarName: "Version Control",
     navbarName: "Version Control",
-    icon: Folder,
+    icon: Dashboard,
     component: VersionControl
   },
   {

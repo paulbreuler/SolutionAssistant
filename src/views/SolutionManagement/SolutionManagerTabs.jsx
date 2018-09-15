@@ -94,23 +94,6 @@ class SolutionManagerTabs extends React.Component {
     };
   }
 
-  componentDidMount() {
-    // Apply saved settings loaded from electron main
-    ipcRenderer.on("packager:defaultExtract", (event, { packagerSettings }) => {
-      this.applySavedSettings(packagerSettings);
-      ipcRenderer.send("packagerPresets:insert", packagerSettings);
-    });
-  }
-
-  componentWillUnmount() {
-    ipcRenderer.removeListener(
-      "packager:defaultExtract",
-      (event, { packagerSettings }) => {
-        this.applySavedSettings(packagerSettings);
-      }
-    );
-  }
-
   componentDidUpdate(prevProps) {
     if (
       prevProps.loadedFromDB !== this.props.loadedFromDB &&
@@ -159,6 +142,7 @@ class SolutionManagerTabs extends React.Component {
   };
 
   isDifferentFromState = preset => {
+    if (!preset) return;
     const relevantState = this.makeRelevantPreset(this.state);
     for (let key in relevantState) {
       if (relevantState.hasOwnProperty(key)) {
@@ -180,8 +164,9 @@ class SolutionManagerTabs extends React.Component {
         this.props.packagerPresets[this.state.presetName]
       );
       if (
+        this.props.packagerPresets &&
         event.target.value !==
-        this.props.packagerPresets[this.state.presetName][event.target.name]
+          this.props.packagerPresets[this.state.presetName][event.target.name]
       ) {
         isDirty = true;
       }
@@ -205,6 +190,9 @@ class SolutionManagerTabs extends React.Component {
 
   handlePresetChange = event => {
     this.applySavedSettings(this.props.packagerPresets[event.target.value]);
+    this.setState({
+      presetName: event.target.value
+    });
   };
 
   openNewPresetDialog = () => {
