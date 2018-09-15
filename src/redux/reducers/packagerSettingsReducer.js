@@ -7,8 +7,8 @@ import update from "immutability-helper";
 const ipcRenderer = window.require("electron").ipcRenderer;
 
 const initialPreset = {
-  presetName: "Default",
-  action: "extract", // {Extract|Pack}
+  presetName: "",
+  action: "", // {Extract|Pack}
   zipFile: "", // <file path>
   zipFilePath: "",
   folder: "", // <folder path>

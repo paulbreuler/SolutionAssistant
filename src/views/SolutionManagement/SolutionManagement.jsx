@@ -62,7 +62,11 @@ class SolutionManagement extends React.Component {
         });
       }
     });
-    ipcRenderer.send("packagerPresets:retrieve");
+
+    // Only grab default settings if a preset is not already defined.
+    if (this.props.packagerSettings.presetName === "") {
+      ipcRenderer.send("packagerPresets:retrieve");
+    }
   }
 
   componentWillUnmount() {
