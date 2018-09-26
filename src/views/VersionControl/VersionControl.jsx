@@ -65,6 +65,16 @@ class VersionControl extends React.Component {
       this.addEntity(entity);
     });
 
+    ipcRenderer.on("git:commit-completed", response => {
+      debugger;
+      if (response)
+        this.showNotification({
+          message: "Commit Complete",
+          color: "success",
+          icon: AddAlert
+        });
+    });
+
     // Request entity data from repo
     ipcRenderer.send(
       "versionControl:requestEntityData",
@@ -77,12 +87,9 @@ class VersionControl extends React.Component {
   }
 
   componentWillUnmount() {
-    ipcRenderer.removeListener(
-      "versionControl:EntityData",
-      (event, raw, entity) => {
-        this.addEntity(entity);
-      }
-    );
+    ipcRenderer.removeAllListeners("git:commit");
+    ipcRenderer.removeAllListeners("versionControl:requestEntityData");
+    ipcRenderer.removeAllListeners("git:commit-complete");
   }
 
   addEntity(entity) {
@@ -231,18 +238,9 @@ class VersionControl extends React.Component {
                 <Grid container>
                   <ItemGrid xs={12} sm={12} md={12}>
                     <TextField
-                      value={this.state.summary}
-                      onChange={this.handleChange}
-                      name="summary"
-                      placeholder="Summary (required)"
-                      id="summary-input"
-                      required
-                      fullWidth
-                    />
-                    <TextField
                       value={this.state.description}
                       onChange={this.handleChange}
-                      placeholder="Description"
+                      placeholder="Commit Message"
                       name="description"
                       id="description-input"
                       multiline={true}
@@ -255,16 +253,15 @@ class VersionControl extends React.Component {
                     <Button
                       color="primary"
                       onClick={() => {
-                        if (this.state.summary === "") {
+                        if (this.state.description === "") {
                           this.showNotification({
-                            message: "Missing summary",
+                            message: "Missing commit message",
                             color: "danger",
                             icon: AddAlert
                           });
                         } else {
                           ipcRenderer.send(
                             "git:commit",
-                            this.state.summary,
                             this.state.description,
                             this.props.packagerSettings.folder
                           );
@@ -309,3 +306,16 @@ export default compose(
   ),
   withStyles(styles)
 )(VersionControl);
+
+/*
+Summary field
+<TextField
+  value={this.state.summary}
+  onChange={this.handleChange}
+  name="summary"
+  placeholder="Summary (required)"
+  id="summary-input"
+  required
+  fullWidth
+/>
+*/

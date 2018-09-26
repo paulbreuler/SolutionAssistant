@@ -88,13 +88,12 @@ ipcMain.on("versionControl:requestEntityData", function(e, folderPath) {
  * To-Do: Have user init repo, then allow commit?
  */
 ipcMain.on("git:commit", function(e, summary, description, repoPath) {
-  console.log(
-    `Summary: ${summary} \nDescription: ${description} \nRepo Path: ${repoPath}`
-  );
+  console.log(`Commit Message: ${description} \nRepo Path: ${repoPath}`);
   simpleGit(repoPath).diffSummary(function(err, status) {
     console.log(status.files[0]);
   });
 
+  win.webContents.send("git:commit-completed", true);
   /*
   simpleGit()
     .cwd(repoPath)
