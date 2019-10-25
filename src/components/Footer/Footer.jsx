@@ -26,8 +26,8 @@ function Footer({ ...props }) {
         <p className={classes.right}>
           <span>
             &copy; {1900 + new Date().getYear()}{" "}
-            <a href="#SudoCraft" className={classes.a}>
-              SudoCraft
+            <a href="#home" className={classes.a}>
+              Paul Breuler
             </a>
           </span>
         </p>

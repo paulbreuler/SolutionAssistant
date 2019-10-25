@@ -55,14 +55,18 @@ class SolutionManagement extends React.Component {
         presets.forEach(preset => {
           this.props.onUpdatePackagerPreset(preset);
           if (preset.presetName === "Default") {
-            const { _id, presetName, ...presetToUpdate } = preset;
+            const { _id, ...presetToUpdate } = preset;
             this.props.onUpdateAllPackagerSettings(presetToUpdate);
             this.setState({ loadedFromDB: true });
           }
         });
       }
     });
-    ipcRenderer.send("packagerPresets:retrieve");
+
+    // Only grab default settings if a preset is not already defined.
+    if (this.props.packagerSettings.presetName === "") {
+      ipcRenderer.send("packagerPresets:retrieve");
+    }
   }
 
   componentWillUnmount() {
@@ -245,40 +249,52 @@ class SolutionManagement extends React.Component {
               }
               footer={
                 <React.Fragment>
-                  {(this.props.packagerSettings.action === constants.EXTRACT ||
-                    this.props.packagerSettings.action === "") && (
-                    <Button
-                      color="white"
-                      onClick={this.browseForSolutionFile.bind(this)}
-                    >
-                      Browse
-                    </Button>
-                  )}
-                  {this.props.packagerSettings.action !== "" && (
-                    <Button
-                      color="primary"
-                      onClick={this.handleSolutionPackaging.bind(this)}
-                      disabled={
-                        (this.props.packagerSettings.zipFile.length === 0 &&
-                          this.props.packagerSettings.action ===
-                            constants.EXTRACT) ||
-                        this.state.isPacking
-                      }
-                    >
-                      {this.props.packagerSettings.action === "extract"
-                        ? "Extract "
-                        : "Pack "}
-                      Solution
-                    </Button>
-                  )}
-                  {this.state.packageFolder && (
-                    <Button
-                      color="rose"
-                      onClick={this.showInFileExplorer.bind(this)}
-                    >
-                      View in File Explorer
-                    </Button>
-                  )}
+                  <Grid container>
+                    {(this.props.packagerSettings.action ===
+                      constants.EXTRACT ||
+                      this.props.packagerSettings.action === "") && (
+                      <ItemGrid xs={6}>
+                        <Button
+                          color="white"
+                          onClick={this.browseForSolutionFile.bind(this)}
+                          fullWidth
+                        >
+                          Browse
+                        </Button>
+                      </ItemGrid>
+                    )}
+                    {this.props.packagerSettings.action !== "" && (
+                      <ItemGrid xs={6}>
+                        <Button
+                          color="primary"
+                          onClick={this.handleSolutionPackaging.bind(this)}
+                          disabled={
+                            (this.props.packagerSettings.zipFile.length === 0 &&
+                              this.props.packagerSettings.action ===
+                                constants.EXTRACT) ||
+                            this.state.isPacking
+                          }
+                          fullWidth
+                        >
+                          {this.props.packagerSettings.action === "extract"
+                            ? "Extract "
+                            : "Pack "}
+                          Solution
+                        </Button>
+                      </ItemGrid>
+                    )}
+                    {this.state.packageFolder && (
+                      <ItemGrid xs={12}>
+                        <Button
+                          color="rose"
+                          onClick={this.showInFileExplorer.bind(this)}
+                          fullWidth
+                        >
+                          View in File Explorer
+                        </Button>
+                      </ItemGrid>
+                    )}
+                  </Grid>
                 </React.Fragment>
               }
             />

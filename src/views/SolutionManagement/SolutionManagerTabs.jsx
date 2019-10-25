@@ -69,6 +69,7 @@ class SolutionManagerTabs extends React.Component {
     super(props);
     this.updateState = this.updateState.bind(this);
     this.validate = this.validate.bind(this);
+    this.resetForm = this.resetForm.bind(this);
 
     this.state = {
       tabValue: 1,
@@ -93,23 +94,6 @@ class SolutionManagerTabs extends React.Component {
     };
   }
 
-  componentDidMount() {
-    // Apply saved settings loaded from electron main
-    ipcRenderer.on("packager:defaultExtract", (event, { packagerSettings }) => {
-      this.applySavedSettings(packagerSettings);
-      ipcRenderer.send("packagerPresets:insert", packagerSettings);
-    });
-  }
-
-  componentWillUnmount() {
-    ipcRenderer.removeListener(
-      "packager:defaultExtract",
-      (event, { packagerSettings }) => {
-        this.applySavedSettings(packagerSettings);
-      }
-    );
-  }
-
   componentDidUpdate(prevProps) {
     if (
       prevProps.loadedFromDB !== this.props.loadedFromDB &&
@@ -118,6 +102,13 @@ class SolutionManagerTabs extends React.Component {
       this.applySavedSettings(this.props.packagerSettings);
     }
   }
+
+  /**
+   * @description Clears unsaved changes
+   */
+  resetForm = () => {
+    this.setState(this.props.packagerSettings);
+  };
 
   applySavedSettings = packagerSettings => {
     let e;
@@ -128,11 +119,9 @@ class SolutionManagerTabs extends React.Component {
       }
     };
     for (e in packagerSettings) {
-      //if (packagerSettings[e] !== "") {
       event.target.value = packagerSettings[e];
       event.target.name = [e];
       this.updateState(event);
-      //}
     }
   };
 
@@ -153,6 +142,7 @@ class SolutionManagerTabs extends React.Component {
   };
 
   isDifferentFromState = preset => {
+    if (!preset) return;
     const relevantState = this.makeRelevantPreset(this.state);
     for (let key in relevantState) {
       if (relevantState.hasOwnProperty(key)) {
@@ -165,7 +155,7 @@ class SolutionManagerTabs extends React.Component {
   };
 
   /**
-   * Packager Settings Update
+   * Packager settings state update
    */
   updateState = event => {
     let isDirty = false;
@@ -174,8 +164,9 @@ class SolutionManagerTabs extends React.Component {
         this.props.packagerPresets[this.state.presetName]
       );
       if (
+        this.props.packagerPresets &&
         event.target.value !==
-        this.props.packagerPresets[this.state.presetName][event.target.name]
+          this.props.packagerPresets[this.state.presetName][event.target.name]
       ) {
         isDirty = true;
       }
@@ -185,6 +176,7 @@ class SolutionManagerTabs extends React.Component {
       [event.target.name]: event.target.value,
       isDirty
     });
+
     this.props.onUpdatePackagerSetting({
       [event.target.name]: event.target.value
     });
@@ -198,6 +190,9 @@ class SolutionManagerTabs extends React.Component {
 
   handlePresetChange = event => {
     this.applySavedSettings(this.props.packagerPresets[event.target.value]);
+    this.setState({
+      presetName: event.target.value
+    });
   };
 
   openNewPresetDialog = () => {

@@ -4,13 +4,13 @@ import SolutionManagement from "../views/SolutionManagement/SolutionManagement.j
 import { Folder } from "@material-ui/icons";
 
 const dashboardRoutes = [
-  // {
-  //   path: "/versionControl",
-  //   sidebarName: "Version Control",
-  //   navbarName: "Version Control",
-  //   icon: Folder,
-  //   component: VersionControl
-  // },
+  {
+    path: "/versionControl",
+    sidebarName: "Version Control",
+    navbarName: "Version Control",
+    icon: Folder,
+    component: VersionControl
+  },
   {
     path: "/solution",
     sidebarName: "Solution Packager",

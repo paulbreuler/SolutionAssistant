@@ -66,7 +66,7 @@ class CustomSelect extends React.Component {
         ) : null}
         <Select
           native
-          value={parentState ? parentState : this.state.selectedValue}
+          value={parentState}
           onChange={this.handleChange(inputProps.name)}
           {...inputProps}
         >
