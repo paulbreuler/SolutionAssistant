@@ -8,15 +8,24 @@ import { createStore, applyMiddleware } from "redux";
 import { Provider } from "react-redux";
 import rootReducer from "./redux";
 import thunk from "redux-thunk";
+import { compose } from "recompose";
 
 const initialState = {};
 
 const middleware = [thunk];
 
+const composeEnhancers =
+  (window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ &&
+    window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__({
+      trace: true,
+      traceLimit: 25
+    })) ||
+  compose;
+
 const store = createStore(
   rootReducer,
   initialState,
-  applyMiddleware(...middleware)
+  composeEnhancers(applyMiddleware(...middleware))
 );
 
 const hist = createBrowserHistory();

@@ -286,9 +286,9 @@ class VersionControl extends React.Component {
   }
 }
 
-VersionControl.propTypes = {
-  onUpdatePackagerSetting: PropTypes.func.isRequired
-};
+// VersionControl.propTypes = {
+//   onUpdatePackagerSetting: PropTypes.func.isRequired
+// };
 
 const mapStateToProps = state => ({
   packagerSettings: state.packagerSettings
