@@ -82,7 +82,6 @@ module.exports.parseEntityData = (log, win, folderPath) => {
         var parser = new xml2js.Parser();
         entityFiles.forEach(file => {
           log.info(`Reading entity data from file: ${file}`);
-
           // Read file
           fs.readFile(file, function(err, data) {
             if (err) {
@@ -128,9 +127,10 @@ function parseXml2js(parser, data, log, win, changes, callback) {
       log.error(err);
       callback(err);
     }
+
     let fields = [];
     // Initialize entity
-    entity = new Entity(result.Entity.Name[0].$.OriginalName, fields);
+    entity = new Entity(result.Entity.Name[0].$.LocalizedName, fields);
     // Add iff entity has attributes
     if (result.Entity.EntityInfo[0].entity[0].attributes[0].attribute) {
       result.Entity.EntityInfo[0].entity[0].attributes[0].attribute.forEach(
@@ -153,8 +153,10 @@ function parseXml2js(parser, data, log, win, changes, callback) {
           entity.isModified = true;
         }
       }
-      win.webContents.send("versionControl:EntityData", result, entity);
     }
+
+    log.info(`Result: ${result}, Entity: ${entity}`);
+    win.webContents.send("versionControl:EntityData", result, entity);
   });
 }
 

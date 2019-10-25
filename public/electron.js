@@ -4,15 +4,17 @@ const log = require("electron-log");
 const { app, BrowserWindow, ipcMain } = electron;
 const simpleGit = require("simple-git");
 const isDev = require("electron-is-dev");
-const {
-  default: installExtension,
-  REACT_DEVELOPER_TOOLS,
-  REDUX_DEVTOOLS
-} = require("electron-devtools-installer");
+if (isDev) {
+  const {
+    default: installExtension,
+    REACT_DEVELOPER_TOOLS,
+    REDUX_DEVTOOLS
+  } = require("electron-devtools-installer");
 
-installExtension(REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS)
-  .then(name => console.log(`Added Extension:  ${name}`))
-  .catch(err => console.log("An error occurred: ", err));
+  installExtension(REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS)
+    .then(name => console.log(`Added Extension:  ${name}`))
+    .catch(err => console.log("An error occurred: ", err));
+}
 
 const solutionParser = require("./SolutionParser");
 

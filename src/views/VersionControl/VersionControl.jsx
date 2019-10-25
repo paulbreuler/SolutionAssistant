@@ -66,7 +66,6 @@ class VersionControl extends React.Component {
     });
 
     ipcRenderer.on("git:commit-completed", response => {
-      debugger;
       if (response)
         this.showNotification({
           message: "Commit Complete",
