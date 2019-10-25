@@ -1,18 +1,7 @@
-import DashboardPage from "../views/Dashboard/Dashboard.jsx";
 import VersionControl from "../views/VersionControl/VersionControl.jsx";
 import SolutionManagement from "../views/SolutionManagement/SolutionManagement.jsx";
 
-import { Dashboard, Folder } from "@material-ui/icons";
-
-/*
-{
-  path: "/dashboard",
-  sidebarName: "Dashboard",
-  navbarName: "Dashboard",
-  icon: Dashboard,
-  component: DashboardPage
-},
-*/
+import { Folder } from "@material-ui/icons";
 
 const dashboardRoutes = [
   {

@@ -1,11 +1,18 @@
 const electron = require("electron");
-const url = require("url");
 const path = require("path");
 const log = require("electron-log");
-const fs = require("fs");
 const { app, BrowserWindow, ipcMain } = electron;
 const simpleGit = require("simple-git");
 const isDev = require("electron-is-dev");
+const {
+  default: installExtension,
+  REACT_DEVELOPER_TOOLS,
+  REDUX_DEVTOOLS
+} = require("electron-devtools-installer");
+
+installExtension(REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS)
+  .then(name => console.log(`Added Extension:  ${name}`))
+  .catch(err => console.log("An error occurred: ", err));
 
 const solutionParser = require("./SolutionParser");
 
@@ -31,6 +38,7 @@ function initializeApp() {
     height: 850,
     show: false
   });
+
   // and load the index.html of the app.
   //win.loadFile("public/index.html");
   win.loadURL(
@@ -308,9 +316,7 @@ ipcMain.on("packager", function(e, packagerSettings) {
   if (isDev) {
     solutoinPackagerPath = `./assets/powershell/SolutionPackager.exe `;
   } else {
-    solutoinPackagerPath = `${
-      process.resourcesPath
-    }/powershell/SolutionPackager.exe' `;
+    solutoinPackagerPath = `${process.resourcesPath}/powershell/SolutionPackager.exe' `;
     solutoinPackagerPath = convertPathToShellPath(solutoinPackagerPath);
   }
   log.verbose(
