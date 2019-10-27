@@ -247,7 +247,7 @@ class SolutionManagerTabs extends React.Component {
         <AppBar position="static" color="default">
           <Tabs value={tabValue} onChange={this.handleTabChange}>
             <Tab key={1} value={1} label="Packager Settings" />
-            <Tab key={2} value={2} label="Test Tab" />
+            {/* <Tab key={2} value={2} label="Test Tab" /> */}
           </Tabs>
         </AppBar>
         {tabValue === 1 && (

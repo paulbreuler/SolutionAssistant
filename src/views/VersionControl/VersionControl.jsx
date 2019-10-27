@@ -62,7 +62,15 @@ class VersionControl extends React.Component {
 
     // Adds individual entity
     ipcRenderer.on("versionControl:EntityData", (event, raw, entity) => {
-      this.addEntity(entity);
+      if (!entity) {
+        this.showNotification({
+          message: `${raw}. Please check log file located at %appdata%\\dynamics-solution-assistant`,
+          color: "danger",
+          icon: AddAlert
+        });
+      } else {
+        this.addEntity(entity);
+      }
     });
 
     ipcRenderer.on("git:commit-completed", response => {
@@ -177,7 +185,7 @@ class VersionControl extends React.Component {
                     >
                       {node.entities.map(entity => {
                         if (!entity) {
-                          return <div> error </div>;
+                          return <div> Error parsing entity </div>;
                         }
                         let label2 = "";
                         if (entity.isModified) {

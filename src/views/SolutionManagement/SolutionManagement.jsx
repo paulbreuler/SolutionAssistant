@@ -110,11 +110,13 @@ class SolutionManagement extends React.Component {
     dialog.showOpenDialog(fileNames => {
       // fileNames is an array that contains all the selected
       if (fileNames === undefined) {
-        this.showNotification({
-          message: "No file selected!",
-          color: "warning",
-          icon: AddAlert
-        });
+        if (!this.props.packagerSettings.zipFile) {
+          this.showNotification({
+            message: "No file selected!",
+            color: "warning",
+            icon: AddAlert
+          });
+        }
         return;
       } else {
         console.log(fileNames[0]);

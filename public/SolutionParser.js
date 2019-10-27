@@ -60,10 +60,16 @@ module.exports.parseEntityData = (log, win, folderPath) => {
   let entityCollection = [];
 
   if (!fs.existsSync(folderPath)) {
-    win.webContents.send(
-      "versionControl:EntityData",
-      `Error: directory does not exist: ${folderPath}`
-    );
+    let message = "";
+    if (folderPath === "") {
+      message = `Error: directory not specified or state has been lost`;
+      win.webContents.send("versionControl:EntityData", message, null);
+      log.error(message);
+    } else {
+      message = `Error: directory does not exist: ${folderPath}`;
+      win.webContents.send("versionControl:EntityData", message, null);
+      log.error(message);
+    }
   } else {
     simpleGit(folderPath).diffSummary(function(err, changes) {
       // Look at alternate to pre-filter
