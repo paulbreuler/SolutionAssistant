@@ -219,6 +219,7 @@ class SolutionManagement extends React.Component {
                   {this.props.packagerSettings.action === constants.PACK && (
                     <ItemGrid xs={12} sm={12}>
                       <FolderInput
+                        labelText="Output Folder"
                         name="zipFilePath"
                         handleStateLift={this.handleChange}
                         folder={this.props.packagerSettings.zipFilePath}

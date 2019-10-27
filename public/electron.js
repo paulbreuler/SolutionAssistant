@@ -12,8 +12,8 @@ if (isDev) {
   } = require("electron-devtools-installer");
 
   installExtension(REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS)
-    .then(name => console.log(`Added Extension:  ${name}`))
-    .catch(err => console.log("An error occurred: ", err));
+    .then(name => log.info(`Added Extension:  ${name}`))
+    .catch(err => log.info("An error occurred: ", err));
 }
 
 const solutionParser = require("./SolutionParser");
@@ -98,9 +98,9 @@ ipcMain.on("versionControl:requestEntityData", function(e, folderPath) {
  * To-Do: Have user init repo, then allow commit?
  */
 ipcMain.on("git:commit", function(e, summary, description, repoPath) {
-  console.log(`Commit Message: ${description} \nRepo Path: ${repoPath}`);
+  log.info(`Commit Message: ${description}, Repo Path: ${repoPath}`);
   simpleGit(repoPath).diffSummary(function(err, status) {
-    console.log(status.files[0]);
+    log.info(status.files[0]);
   });
 
   win.webContents.send("git:commit-completed", true);
@@ -288,7 +288,7 @@ ipcMain.on("packager:retrieveDefaultExtract", function(e) {
       zipFile: "", // <file path>
       zipFilePath: `${app.getPath(
         "documents"
-      )}\\${app.getName()}\\solutions\\PackedSolution`,
+      )}\\${app.getName()}\\solutions\\PackedSolutions`,
       folder: `${app.getPath(
         "documents"
       )}\\${app.getName()}\\solutions\\ExtractedSolution`, // <folder path>
@@ -379,7 +379,6 @@ function getPackagerParameters(packagerSettings) {
 
   let isValid = true;
   for (var key in packagerSettings) {
-    console.log(`Key: ${key}`);
     if (
       packagerSettings[key] !== "" &&
       packagerSettings[key] !== undefined &&

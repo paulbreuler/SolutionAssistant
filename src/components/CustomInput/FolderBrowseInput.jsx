@@ -29,10 +29,10 @@ export default class FolderInput extends React.Component {
   // value prop should be passed from parent to ensure
   // component is updated correctly
   render() {
-    const { handleStateLift, error, folder, name } = this.props;
+    const { handleStateLift, error, folder, name, labelText } = this.props;
     return (
       <CustomInput
-        labelText="Folder"
+        labelText={labelText ? labelText : "Folder"}
         id="folder-input"
         handleStateLift={handleStateLift.bind(this)}
         formControlProps={{

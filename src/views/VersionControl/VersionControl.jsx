@@ -96,7 +96,7 @@ class VersionControl extends React.Component {
   componentWillUnmount() {
     ipcRenderer.removeAllListeners("git:commit");
     ipcRenderer.removeAllListeners("versionControl:requestEntityData");
-    ipcRenderer.removeAllListeners("git:commit-complete");
+    ipcRenderer.removeAllListeners("git:commit-completed");
   }
 
   addEntity(entity) {
