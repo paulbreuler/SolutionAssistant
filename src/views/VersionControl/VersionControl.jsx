@@ -247,7 +247,8 @@ class VersionControl extends React.Component {
                     <TextField
                       value={this.state.description}
                       onChange={this.handleChange}
-                      placeholder="Commit Message"
+                      disabled={true}
+                      placeholder="Commits are not allowed. Version Control is in preview mode"
                       name="description"
                       id="description-input"
                       multiline={true}
@@ -259,6 +260,7 @@ class VersionControl extends React.Component {
                   <ItemGrid xs={12} sm={12} md={12}>
                     <Button
                       color="primary"
+                      disabled={true}
                       onClick={() => {
                         if (this.state.description === "") {
                           this.showNotification({
