@@ -64,7 +64,7 @@ class VersionControl extends React.Component {
     ipcRenderer.on("versionControl:EntityData", (event, raw, entity) => {
       if (!entity) {
         this.showNotification({
-          message: `${raw}. Please check log file located at %appdata%\\dynamics-solution-assistant`,
+          message: `${raw}. Please check log file located at %appdata%\\solution-assistant`,
           color: "danger",
           icon: AddAlert
         });

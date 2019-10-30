@@ -83,7 +83,7 @@ class SolutionManagement extends React.Component {
       });
     } else {
       this.showNotification({
-        message: `Solution failed to extract! please check log file located at %appdata%\\dynamics-solution-assistant`,
+        message: `Solution failed to extract! please check log file located at %appdata%\\solution-assistant`,
         color: "danger",
         icon: AddAlert
       });
