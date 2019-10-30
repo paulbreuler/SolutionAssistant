@@ -317,13 +317,17 @@ ipcMain.on("packager", function(e, packagerSettings) {
   if (isDev) {
     solutoinPackagerPath = `./assets/powershell/SolutionPackager.exe `;
   } else {
-    solutoinPackagerPath = `${process.resourcesPath}/powershell/SolutionPackager.exe' `;
-    solutoinPackagerPath = convertPathToShellPath(solutoinPackagerPath);
+    //TODO: Consider OS when creating path
+    solutoinPackagerPath = `${process.resourcesPath}\\powershell\\SolutionPackager.exe`;
+    //solutoinPackagerPath = convertPathToShellPath(solutoinPackagerPath);
   }
+
   log.verbose(
     `About to run solution packager shell command ${solutoinPackagerPath} \n\t- parameters: ${params}`
   );
+
   const ls = childProcess.spawn(solutoinPackagerPath, params);
+
   let output = [];
   ls.stdout.on("data", function(data) {
     log.info("SolutionPackager: stdout: <" + data + "> ");
@@ -354,6 +358,12 @@ ipcMain.on("packager", function(e, packagerSettings) {
     } else {
       win.webContents.send("packager:output", "error", code);
     }
+  });
+
+  ls.on("error", code => {
+    log.error(
+      `child process exited with code ${code} \n\t ${code.message} \n\t ${code.stack}`
+    );
   });
 });
 
@@ -413,8 +423,14 @@ function getPackagerParameters(packagerSettings) {
   return parameters;
 }
 
+// Convert Windows path into Linux path type
 function convertPathToShellPath(path) {
-  return path.replace(/[a-zA-Z]:\\/i, "/c/").replace(/\\/g, "/");
+  let match = path.match(/[a-zA-Z]:\\/i);
+  let driveLetter = match[0].split(":")[0];
+
+  return path
+    .replace(/[a-zA-Z]:\\/i, "/" + driveLetter + "/")
+    .replace(/\\/g, "/");
 }
 
 function getFileExtension(filename) {
