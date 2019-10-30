@@ -1,14 +1,14 @@
 {
-  "name": "dynamics-solution-assistant",
-  "version": "0.2.0",
-  "description": "Dynamics 365 Solution Assistant.",
+  "name": "solution-assistant",
+  "version": "0.9.0",
+  "description": "PowerApps Solution Assistant.",
   "author": "Paul Breuler",
   "license": "MIT ",
   "private": false,
   "main": "public/electron.js",
   "homepage": "./",
   "build": {
-    "appId": "com.electron.dynamics-solution-assistant",
+    "appId": "com.electron.solution-assistant",
     "files": [
       "build/**/*",
       "node_modules/**/*",
