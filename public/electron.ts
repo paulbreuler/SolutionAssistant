@@ -377,7 +377,9 @@ function getPackagerParameters(packagerSettings: any) {
   // If we are packing the solution combine zipFilePath and zipFile for command line arg
   // Electron throws error when trying to use
   if (packagerSettings.action === "pack") {
-    let zipFile = `${packagerSettings.zipFilePath}/${packagerSettings.zipFile}`;
+    let zipFile = `${packagerSettings.zipFilePath}/${splitZipFileString(
+      packagerSettings.zipFile
+    )}`;
     log.info(`zipFile: ${zipFile}`);
     packagerSettings.zipFile = zipFile;
 
@@ -425,6 +427,11 @@ function getPackagerParameters(packagerSettings: any) {
   }
 
   return parameters;
+}
+
+function splitZipFileString(str: string) {
+  let file = str.split("\\").pop();
+  return file;
 }
 
 // Convert Windows path into Linux path type
