@@ -38,7 +38,10 @@ function initializeApp() {
     width: 1300,
     minheight: 600,
     height: 850,
-    show: false
+    show: false,
+    webPreferences: {
+      nodeIntegration: true
+    }
   });
 
   // and load the index.html of the app.
@@ -62,7 +65,7 @@ function initializeApp() {
     minheight: 600,
     height: 850,
     frame: false,
-    alwaysOnTop: true
+    alwaysOnTop: false
   });
   splash.loadURL(
     isDev

@@ -8,22 +8,24 @@ const { dialog } = electron.remote;
 
 export default class FolderInput extends React.Component {
   browseForFolder = e => {
-    dialog.showOpenDialog({ properties: ["openDirectory"] }, fileNames => {
-      // fileNames is an array that contains all the selected
-      if (fileNames === undefined) {
-        console.log("No file selected");
-        return;
-      } else {
-        let event = {
-          target: {
-            name: this.props.name,
-            value: fileNames[0]
-          }
-        };
-        // Ignore lifting state if not defined
-        if (this.props.handleStateLift) this.props.handleStateLift(event);
-      }
+    let folderNames = dialog.showOpenDialogSync({
+      properties: ["openDirectory"]
     });
+    // fileNames is an array that contains all the selected
+    if (folderNames === undefined) {
+      console.log("No file selected");
+      return;
+    } else {
+      console.log(folderNames);
+      let event = {
+        target: {
+          name: this.props.name,
+          value: folderNames[0]
+        }
+      };
+      // Ignore lifting state if not defined
+      if (this.props.handleStateLift) this.props.handleStateLift(event);
+    }
   };
 
   // value prop should be passed from parent to ensure

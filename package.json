@@ -68,7 +68,7 @@
   "devDependencies": {
     "concurrently": "^3.6.1",
     "devtron": "^1.4.0",
-    "electron": "^4.0.4",
+    "electron": "^7.1.10",
     "electron-builder": "^20.38.5",
     "electron-devtools-installer": "^2.2.4",
     "eslint-config-prettier": "^4.0.0",

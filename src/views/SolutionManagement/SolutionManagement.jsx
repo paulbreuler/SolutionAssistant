@@ -107,45 +107,56 @@ class SolutionManagement extends React.Component {
   };
 
   browseForSolutionFile(e) {
-    dialog.showOpenDialog(fileNames => {
-      // fileNames is an array that contains all the selected
-      if (fileNames === undefined) {
-        if (!this.props.packagerSettings.zipFile) {
-          this.showNotification({
-            message: "No file selected!",
-            color: "warning",
-            icon: AddAlert
-          });
-        }
-        return;
-      } else {
-        console.log(fileNames[0]);
-        this.setState({ solutionFile: fileNames[0] });
-        this.props.onUpdatePackagerSetting({
-          zipFile: fileNames[0]
-        });
-      }
-    });
-  }
+    let options = {
+      title: "Locate PowerApps Solution Zip",
+      properties: ["openfile"],
+      filters: [
+        { name: "Zip", extensions: ["zip"] },
+        { name: "All Files", extensions: ["*"] }
+      ]
+    };
 
-  browseForOutputDirectory(e) {
-    dialog.showOpenDialog({ properties: ["openDirectory"] }, directory => {
-      // fileNames is an array that contains all the selected
-      if (directory === undefined) {
+    let fileNames = dialog.showOpenDialogSync(options);
+
+    // fileNames is an array that contains all the selected
+    if (fileNames === undefined) {
+      if (!this.props.packagerSettings.zipFile) {
         this.showNotification({
-          message: "No directory selected!",
+          message: "No file selected!",
           color: "warning",
           icon: AddAlert
         });
-        return;
-      } else {
-        console.log(directory[0]);
-        this.setState({ solutionFile: directory[0] });
-        this.props.onUpdatePackagerSetting({
-          zipFile: directory[0]
-        });
       }
+      return;
+    } else {
+      console.log(fileNames[0]);
+      this.setState({ solutionFile: fileNames[0] });
+      this.props.onUpdatePackagerSetting({
+        zipFile: fileNames[0]
+      });
+    }
+  }
+
+  browseForOutputDirectory(e) {
+    let directory = dialog.showOpenDialogSync({
+      properties: ["openDirectory"]
     });
+
+    // fileNames is an array that contains all the selected
+    if (directory === undefined) {
+      this.showNotification({
+        message: "No directory selected!",
+        color: "warning",
+        icon: AddAlert
+      });
+      return;
+    } else {
+      console.log(directory[0]);
+      this.setState({ solutionFile: directory[0] });
+      this.props.onUpdatePackagerSetting({
+        zipFile: directory[0]
+      });
+    }
   }
 
   handleSolutionPackaging() {
@@ -337,7 +348,4 @@ const mapActionsToProps = {
   onRemoveNotification: removeNotification
 };
 
-export default connect(
-  mapStateToProps,
-  mapActionsToProps
-)(SolutionManagement);
+export default connect(mapStateToProps, mapActionsToProps)(SolutionManagement);
