@@ -4,25 +4,14 @@ const log = require("electron-log");
 const { app, BrowserWindow, ipcMain } = electron;
 const simpleGit = require("simple-git");
 const isDev = require("electron-is-dev");
-if (isDev) {
-  const {
-    default: installExtension,
-    REACT_DEVELOPER_TOOLS,
-    REDUX_DEVTOOLS
-  } = require("electron-devtools-installer");
-
-  installExtension(REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS)
-    .then(name => log.info(`Added Extension:  ${name}`))
-    .catch(err => log.info("An error occurred: ", err));
-}
 
 const solutionParser = require("./SolutionParser");
 
 const Datastore = require("nedb"),
   db = new Datastore({
-    filename: `${app.getPath(
-      "documents"
-    )}\\${app.getName()}\\datastore\\settings.store`,
+    filename: `${app.getPath("documents")}\\${
+      app.name
+    }\\datastore\\settings.store`,
     autoload: true
   });
 
@@ -51,12 +40,14 @@ function initializeApp() {
       ? "http://localhost:3000"
       : `file://${path.join(__dirname, "../build/index.html")}`
   );
-  log.info(
-    `Loading application primary index.html from: file://${path.join(
-      __dirname,
-      "../build/index.html"
-    )}`
-  );
+
+  if (!isDev)
+    log.info(
+      `Loading application primary index.html from: file://${path.join(
+        __dirname,
+        "../build/index.html"
+      )}`
+    );
 
   // create a new `splash`-Window
   let splash = new BrowserWindow({
@@ -289,12 +280,12 @@ ipcMain.on("packager:retrieveDefaultExtract", function(e) {
       presetName: "Default",
       action: "extract", // {Extract|Pack}
       zipFile: "", // <file path>
-      zipFilePath: `${app.getPath(
-        "documents"
-      )}\\${app.getName()}\\solutions\\PackedSolutions`,
-      folder: `${app.getPath(
-        "documents"
-      )}\\${app.getName()}\\solutions\\ExtractedSolution`, // <folder path>
+      zipFilePath: `${app.getPath("documents")}\\${
+        app.name
+      }\\solutions\\PackedSolutions`,
+      folder: `${app.getPath("documents")}\\${
+        app.name
+      }\\solutions\\ExtractedSolution`, // <folder path>
       packageType: "", // {Unmanaged|Managed|Both}
       allowWrite: "", // {Yes|No}
       allowDelete: "", // {Yes|No|Prompt}

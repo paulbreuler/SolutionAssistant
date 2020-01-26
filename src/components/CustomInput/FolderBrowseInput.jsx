@@ -16,7 +16,6 @@ export default class FolderInput extends React.Component {
       console.log("No file selected");
       return;
     } else {
-      console.log(folderNames);
       let event = {
         target: {
           name: this.props.name,

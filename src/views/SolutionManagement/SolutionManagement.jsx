@@ -137,28 +137,6 @@ class SolutionManagement extends React.Component {
     }
   }
 
-  browseForOutputDirectory(e) {
-    let directory = dialog.showOpenDialogSync({
-      properties: ["openDirectory"]
-    });
-
-    // fileNames is an array that contains all the selected
-    if (directory === undefined) {
-      this.showNotification({
-        message: "No directory selected!",
-        color: "warning",
-        icon: AddAlert
-      });
-      return;
-    } else {
-      console.log(directory[0]);
-      this.setState({ solutionFile: directory[0] });
-      this.props.onUpdatePackagerSetting({
-        zipFile: directory[0]
-      });
-    }
-  }
-
   handleSolutionPackaging() {
     let isValid = true;
     let settings = this.props.packagerSettings;
