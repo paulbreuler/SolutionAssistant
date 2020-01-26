@@ -1,7 +1,8 @@
+export {};
 const electron = require("electron");
 const path = require("path");
 const log = require("electron-log");
-const { app, BrowserWindow, ipcMain } = electron;
+const { app, BrowserWindow, ipcMain, process } = electron;
 const simpleGit = require("simple-git");
 const isDev = require("electron-is-dev");
 
@@ -18,7 +19,8 @@ const Datastore = require("nedb"),
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win;
+//let win : BrowserWindow;
+let win: any;
 
 function initializeApp() {
   log.transports.file.level = "verbose";
@@ -84,7 +86,10 @@ function initializeApp() {
   });
 }
 
-ipcMain.on("versionControl:requestEntityData", function(e, folderPath) {
+ipcMain.on("versionControl:requestEntityData", function(
+  e: any,
+  folderPath: string
+) {
   solutionParser.parseEntityData(log, win, folderPath);
 });
 
@@ -92,9 +97,14 @@ ipcMain.on("versionControl:requestEntityData", function(e, folderPath) {
  * Commit to git repository. Initializes if this is the first commit.
  * To-Do: Have user init repo, then allow commit?
  */
-ipcMain.on("git:commit", function(e, summary, description, repoPath) {
+ipcMain.on("git:commit", function(
+  e: any,
+  summary: any,
+  description: string,
+  repoPath: string
+) {
   log.info(`Commit Message: ${description}, Repo Path: ${repoPath}`);
-  simpleGit(repoPath).diffSummary(function(err, status) {
+  simpleGit(repoPath).diffSummary(function(err: any, status: any) {
     log.info(status.files[0]);
   });
 
@@ -109,12 +119,12 @@ ipcMain.on("git:commit", function(e, summary, description, repoPath) {
     */
 });
 
-ipcMain.on("git:init", function(e, repoPath) {
+ipcMain.on("git:init", function(e: any, repoPath: string) {
   const gitP = require("simple-git/promise");
   const git = gitP(repoPath);
   git
     .checkIsRepo()
-    .then(isRepo => !isRepo && initialiseRepo(git))
+    .then((isRepo: any) => !isRepo && initialiseRepo(git))
     .then(() => log.info(`Initialized repo for directory ${repoPath}`));
 });
 
@@ -122,7 +132,7 @@ ipcMain.on("git:init", function(e, repoPath) {
  * Initialize git repository
  * @param {simpleGit} git
  */
-function initialiseRepo(git) {
+function initialiseRepo(git: any) {
   return git.init().then(() => {});
 }
 //setDefaultSettings();
@@ -169,8 +179,8 @@ function setDefaultSettings() {
 /*
   Retrieve Settings
 */
-ipcMain.on("packagerPresets:retrieve", function(e) {
-  db.find({ presetName: { $exists: true } }, function(err, presets) {
+ipcMain.on("packagerPresets:retrieve", function(e: any) {
+  db.find({ presetName: { $exists: true } }, function(err: any, presets: any) {
     win.webContents.send("packagerPresets:acquired", presets);
   });
 });
@@ -198,7 +208,7 @@ ipcMain.on("packagerPresets:retrieve", function(e) {
     localize: string
   }
 */
-ipcMain.on("packagerPresets:update", function(e, preset) {
+ipcMain.on("packagerPresets:update", function(e: any, preset: any) {
   db.update(
     {
       presetName: `${preset.presetName}`
@@ -207,7 +217,7 @@ ipcMain.on("packagerPresets:update", function(e, preset) {
       $set: { ...preset }
     },
     {},
-    function(err, numReplaced) {
+    function(err: any, numReplaced: any) {
       // Update callbackcode here
       // db.find({ presetName: { $exists: true } }, function(
       //   err,
@@ -219,8 +229,8 @@ ipcMain.on("packagerPresets:update", function(e, preset) {
   );
 });
 
-ipcMain.on("packagerPresets:insert", function(e, preset) {
-  db.insert({ ...preset }, function(err, newDoc) {});
+ipcMain.on("packagerPresets:insert", function(e: any, preset: any) {
+  db.insert({ ...preset }, function(err: any, newDoc: any) {});
 });
 
 /*
@@ -275,7 +285,7 @@ ipcMain.on("settings:update", function(e, settings) {
 });
 */
 
-ipcMain.on("packager:retrieveDefaultExtract", function(e) {
+ipcMain.on("packager:retrieveDefaultExtract", function(e: any) {
   win.webContents.send("packager:defaultExtract", {
     packagerSettings: {
       presetName: "Default",
@@ -302,7 +312,7 @@ ipcMain.on("packager:retrieveDefaultExtract", function(e) {
 });
 
 // Catch solution:unpack
-ipcMain.on("packager:execute", function(e, packagerSettings) {
+ipcMain.on("packager:execute", function(e: any, packagerSettings: any) {
   const childProcess = require("child_process"); // The power of Node.JS
   log.info(`Dynamics 365 solution to unpack: ${packagerSettings.zipFile}`);
 
@@ -323,8 +333,8 @@ ipcMain.on("packager:execute", function(e, packagerSettings) {
 
   const ls = childProcess.spawn(solutoinPackagerPath, params);
 
-  let output = [];
-  ls.stdout.on("data", function(data) {
+  let output: any = [];
+  ls.stdout.on("data", function(data: any) {
     log.info("SolutionPackager: stdout: <" + data + "> ");
     // appendToDroidOutput(data);
 
@@ -341,11 +351,11 @@ ipcMain.on("packager:execute", function(e, packagerSettings) {
     }
   });
 
-  ls.stderr.on("data", function(data) {
+  ls.stderr.on("data", function(data: any) {
     log.error("Error packaging or extracting solution: " + data);
   });
 
-  ls.on("close", function(code) {
+  ls.on("close", function(code: any) {
     // console.log('child process exited with code ' + code);
     if (code === 0) {
       win.webContents.send("packager:output", "success", output);
@@ -355,16 +365,16 @@ ipcMain.on("packager:execute", function(e, packagerSettings) {
     }
   });
 
-  ls.on("error", code => {
+  ls.on("error", (code: any) => {
     log.error(
       `child process exited with code ${code} \n\t ${code.message} \n\t ${code.stack}`
     );
   });
 });
 
-function getPackagerParameters(packagerSettings) {
-  let parameters = [];
-  let param = "";
+function getPackagerParameters(packagerSettings: any) {
+  let parameters: any = [];
+  let param: string = "";
 
   // If we are packing the solution combine zipFilePath and zipFile for command line arg
   // Electron throws error when trying to use
@@ -419,7 +429,7 @@ function getPackagerParameters(packagerSettings) {
 }
 
 // Convert Windows path into Linux path type
-function convertPathToShellPath(path) {
+function convertPathToShellPath(path: any) {
   let match = path.match(/[a-zA-Z]:\\/i);
   let driveLetter = match[0].split(":")[0];
 
@@ -428,6 +438,6 @@ function convertPathToShellPath(path) {
     .replace(/\\/g, "/");
 }
 
-function getFileExtension(filename) {
+function getFileExtension(filename: string) {
   return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
 }
