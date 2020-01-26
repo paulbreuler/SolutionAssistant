@@ -177,8 +177,26 @@ class SolutionManagement extends React.Component {
     return { path, file };
   }
 
+  getFileExtension(filename) {
+    return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
+  }
+
   showInFileExplorer() {
-    electron.shell.showItemInFolder(this.state.packageFolder);
+    let outputPath = `${this.props.packagerSettings.zipFilePath}\\${
+      this.splitZipFileString(this.props.packagerSettings.zipFile).file
+    }`;
+    let extractFolderPath = `${this.props.packagerSettings.folder}`;
+
+    // User input does not require .zip. Ensure it's added if not present to prevent failure.
+    if (this.getFileExtension(this.props.packagerSettings.zipFile) === "") {
+      outputPath += ".zip";
+    }
+
+    electron.shell.showItemInFolder(
+      this.props.packagerSettings.action === "pack"
+        ? outputPath
+        : extractFolderPath
+    );
   }
 
   showNotification = notification => {
