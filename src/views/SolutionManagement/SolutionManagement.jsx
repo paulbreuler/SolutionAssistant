@@ -166,7 +166,7 @@ class SolutionManagement extends React.Component {
       }
     }
     if (isValid) {
-      ipcRenderer.send("packager", this.props.packagerSettings);
+      ipcRenderer.send("packager:execute", this.props.packagerSettings);
       this.setState({ isPacking: true });
     }
   }

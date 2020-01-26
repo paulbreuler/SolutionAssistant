@@ -6,6 +6,7 @@ const simpleGit = require("simple-git");
 const isDev = require("electron-is-dev");
 
 const solutionParser = require("./SolutionParser");
+//const solutionPackager = require("./SolutionPackager");
 
 const Datastore = require("nedb"),
   db = new Datastore({
@@ -301,7 +302,7 @@ ipcMain.on("packager:retrieveDefaultExtract", function(e) {
 });
 
 // Catch solution:unpack
-ipcMain.on("packager", function(e, packagerSettings) {
+ipcMain.on("packager:execute", function(e, packagerSettings) {
   const childProcess = require("child_process"); // The power of Node.JS
   log.info(`Dynamics 365 solution to unpack: ${packagerSettings.zipFile}`);
 

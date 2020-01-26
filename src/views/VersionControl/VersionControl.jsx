@@ -165,7 +165,7 @@ class VersionControl extends React.Component {
                 flex: "0 0 auto",
                 position: "relative",
                 outline: "none",
-                height: "100px",
+                height: "470px",
                 display: "flex",
                 overflow: "hidden"
               }}
@@ -309,10 +309,7 @@ const mapActionsToProps = {
 };
 
 export default compose(
-  connect(
-    mapStateToProps,
-    mapActionsToProps
-  ),
+  connect(mapStateToProps, mapActionsToProps),
   withStyles(styles)
 )(VersionControl);
 
