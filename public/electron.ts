@@ -2,7 +2,7 @@ export {};
 const electron = require("electron");
 const path = require("path");
 const log = require("electron-log");
-const { app, BrowserWindow, ipcMain, process } = electron;
+const { app, BrowserWindow, ipcMain } = electron;
 const simpleGit = require("simple-git");
 const isDev = require("electron-is-dev");
 
@@ -26,9 +26,7 @@ function initializeApp() {
   log.transports.file.level = "verbose";
   // Create the browser window.
   win = new BrowserWindow({
-    minwidth: 950,
     width: 1300,
-    minheight: 600,
     height: 850,
     show: false,
     webPreferences: {
@@ -54,9 +52,9 @@ function initializeApp() {
 
   // create a new `splash`-Window
   let splash = new BrowserWindow({
-    minwidth: 950,
+    //minwidth: 950,
     width: 1300,
-    minheight: 600,
+    //minheight: 600,
     height: 850,
     frame: false,
     alwaysOnTop: false
