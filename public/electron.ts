@@ -8,7 +8,7 @@ const isDev = require("electron-is-dev");
 
 import { SolutionParser } from "./SolutionParser";
 //const solutionPackager = require("./SolutionPackager");
-
+//This is a test
 const Datastore = require("nedb"),
   db = new Datastore({
     filename: `${app.getPath("documents")}\\${

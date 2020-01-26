@@ -3,6 +3,7 @@ module.exports = [
     mode: "development",
     entry: "./public/electron.ts",
     target: "electron-main",
+    watch: true,
     module: {
       rules: [
         {
