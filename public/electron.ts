@@ -6,7 +6,7 @@ const { app, BrowserWindow, ipcMain } = electron;
 const simpleGit = require("simple-git");
 const isDev = require("electron-is-dev");
 
-const solutionParser = require("./SolutionParser");
+import { SolutionParser } from "./SolutionParser";
 //const solutionPackager = require("./SolutionPackager");
 
 const Datastore = require("nedb"),
@@ -88,7 +88,7 @@ ipcMain.on("versionControl:requestEntityData", function(
   e: any,
   folderPath: string
 ) {
-  solutionParser.parseEntityData(log, win, folderPath);
+  SolutionParser.parseEntityData(log, win, folderPath);
 });
 
 /**
@@ -378,6 +378,7 @@ function getPackagerParameters(packagerSettings: any) {
   // Electron throws error when trying to use
   if (packagerSettings.action === "pack") {
     let zipFile = `${packagerSettings.zipFilePath}/${packagerSettings.zipFile}`;
+    log.info(`zipFile: ${zipFile}`);
     packagerSettings.zipFile = zipFile;
 
     delete packagerSettings.zipFilePath;

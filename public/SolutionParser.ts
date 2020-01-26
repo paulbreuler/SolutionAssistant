@@ -56,72 +56,74 @@ function filewalker(dir: any, done: any) {
  * TODO: currently assumes "packagerSettings.folder" is correct path.
  * TODO: Setup repo reducer
  */
-module.exports.parseEntityData = (log: any, win: any, folderPath: any) => {
-  let entityFiles: any = [];
-  let entityCollection = [];
+export module SolutionParser {
+  export function parseEntityData(log: any, win: any, folderPath: any) {
+    let entityFiles: any = [];
+    let entityCollection = [];
 
-  if (!fs.existsSync(folderPath)) {
-    let message = "";
-    if (folderPath === "") {
-      message = `Error: directory not specified or state has been lost`;
-      win.webContents.send("versionControl:EntityData", message, null);
-      log.error(message);
+    if (!fs.existsSync(folderPath)) {
+      let message = "";
+      if (folderPath === "") {
+        message = `Error: directory not specified or state has been lost`;
+        win.webContents.send("versionControl:EntityData", message, null);
+        log.error(message);
+      } else {
+        message = `Error: directory does not exist: ${folderPath}`;
+        win.webContents.send("versionControl:EntityData", message, null);
+        log.error(message);
+      }
     } else {
-      message = `Error: directory does not exist: ${folderPath}`;
-      win.webContents.send("versionControl:EntityData", message, null);
-      log.error(message);
-    }
-  } else {
-    simpleGit(folderPath).diffSummary(function(err: any, changes: any) {
-      // Look at alternate to pre-filter
-      // Ref: https://ourcodeworld.com/articles/read/420/how-to-read-recursively-a-directory-in-node-js
-      filewalker(folderPath, (err: any, results: any) => {
-        if (err) {
-          log.error(err);
-        } else {
-          results.forEach((file: any) => {
-            if (file.includes("Entity.xml")) {
-              entityFiles.push(file);
-            }
-          });
-        }
-
-        var parser = new xml2js.Parser();
-        entityFiles.forEach((file: any) => {
-          log.info(`Reading entity data from file: ${file}`);
-          // Read file
-          fs.readFile(file, function(err: any, data: any) {
-            if (err) {
-              log.error(err);
-            }
-            /*
-       
-          */
-            parseXml2js(
-              parser,
-              data,
-              log,
-              win,
-              changes,
-              (err: any, entity: any) => {
-                if (entity) {
-                  entityCollection.push(entity);
-                }
+      simpleGit(folderPath).diffSummary(function(err: any, changes: any) {
+        // Look at alternate to pre-filter
+        // Ref: https://ourcodeworld.com/articles/read/420/how-to-read-recursively-a-directory-in-node-js
+        filewalker(folderPath, (err: any, results: any) => {
+          if (err) {
+            log.error(err);
+          } else {
+            results.forEach((file: any) => {
+              if (file.includes("Entity.xml")) {
+                entityFiles.push(file);
               }
-            );
-          }); // ForEach file
-        });
-        // FileWalker
-      }); // git diffsummary
-    }); // else
-  }
-};
+            });
+          }
 
-module.exports.checkForChanges = (entityCollection: any) => {
-  simpleGit("").diffSummary(function(err: any, status: any) {
-    console.log(status.files[0]);
-  });
-};
+          var parser = new xml2js.Parser();
+          entityFiles.forEach((file: any) => {
+            log.info(`Reading entity data from file: ${file}`);
+            // Read file
+            fs.readFile(file, function(err: any, data: any) {
+              if (err) {
+                log.error(err);
+              }
+              /*
+         
+            */
+              parseXml2js(
+                parser,
+                data,
+                log,
+                win,
+                changes,
+                (err: any, entity: any) => {
+                  if (entity) {
+                    entityCollection.push(entity);
+                  }
+                }
+              );
+            }); // ForEach file
+          });
+          // FileWalker
+        }); // git diffsummary
+      }); // else
+    }
+  }
+
+  function checkForChanges(entityCollection: any) {
+    simpleGit("").diffSummary(function(err: any, status: any) {
+      console.log(status.files[0]);
+    });
+  }
+}
 
 /**
  * Deserialize file reader buffer into Entity class.
