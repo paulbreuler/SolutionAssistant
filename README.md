@@ -9,4 +9,6 @@ Build command simplified from 2 steps to one. Now just run
 
 Note that your browser will display an error related to electron and will not display the site, only the Electron shell will display the application.
 
-Refer to [wiki](https://github.com/paulbreuler/SolutionAssistant/wiki) for more info.
+# Demo
+![Solution Assistant Demo](https://github.com/paulbreuler/SolutionAssistant/blob/master/github-wiki-media/sa_final_draft.gif)
+
