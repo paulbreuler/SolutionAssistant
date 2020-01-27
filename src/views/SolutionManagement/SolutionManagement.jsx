@@ -129,7 +129,6 @@ class SolutionManagement extends React.Component {
       }
       return;
     } else {
-      console.log(fileNames[0]);
       this.setState({ solutionFile: fileNames[0] });
       this.props.onUpdatePackagerSetting({
         zipFile: fileNames[0]
@@ -182,21 +181,7 @@ class SolutionManagement extends React.Component {
   }
 
   showInFileExplorer() {
-    let outputPath = `${this.props.packagerSettings.zipFilePath}\\${
-      this.splitZipFileString(this.props.packagerSettings.zipFile).file
-    }`;
-    let extractFolderPath = `${this.props.packagerSettings.folder}`;
-
-    // User input does not require .zip. Ensure it's added if not present to prevent failure.
-    if (this.getFileExtension(this.props.packagerSettings.zipFile) === "") {
-      outputPath += ".zip";
-    }
-
-    electron.shell.showItemInFolder(
-      this.props.packagerSettings.action === "pack"
-        ? outputPath
-        : extractFolderPath
-    );
+    ipcRenderer.send("viewInExplorer", this.props.packagerSettings);
   }
 
   showNotification = notification => {

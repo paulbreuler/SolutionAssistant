@@ -309,6 +309,22 @@ ipcMain.on("packager:retrieveDefaultExtract", function(e: any) {
   });
 });
 
+ipcMain.on("viewInExplorer", function(e: any, packagerSettings: any) {
+  let outputPath = `${packagerSettings.zipFilePath}\\${splitZipFileString(
+    packagerSettings.zipFile
+  )}`;
+  let extractFolderPath = `${packagerSettings.folder}`;
+
+  // User input does not require .zip. Ensure it's added if not present to prevent failure.
+  if (getFileExtension(packagerSettings.zipFile) === "") {
+    outputPath += ".zip";
+  }
+
+  electron.shell.showItemInFolder(
+    packagerSettings.action === "pack" ? outputPath : extractFolderPath
+  );
+});
+
 // Catch solution:unpack
 ipcMain.on("packager:execute", function(e: any, packagerSettings: any) {
   const childProcess = require("child_process"); // The power of Node.JS
