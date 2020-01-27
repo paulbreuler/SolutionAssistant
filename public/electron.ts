@@ -1,15 +1,14 @@
 export {};
 const electron = require("electron");
 const path = require("path");
-const log = require("electron-log");
-const { app, BrowserWindow, ipcMain } = electron;
-const simpleGit = require("simple-git");
-const isDev = require("electron-is-dev");
-
+export const log = require("electron-log");
+export const { app, BrowserWindow, ipcMain } = electron;
+export const isDev = require("electron-is-dev");
+import SolutionPackager from "./SolutionPackager";
 import { SolutionParser } from "./SolutionParser";
-//const solutionPackager = require("./SolutionPackager");
-//This is a test
-const Datastore = require("nedb"),
+import VersionControl from "./VersionControl";
+
+export const Datastore = require("nedb"),
   db = new Datastore({
     filename: `${app.getPath("documents")}\\${
       app.name
@@ -20,7 +19,7 @@ const Datastore = require("nedb"),
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 //let win : BrowserWindow;
-let win: any;
+export let win: any;
 
 function initializeApp() {
   log.transports.file.level = "verbose";
@@ -84,57 +83,6 @@ function initializeApp() {
   });
 }
 
-ipcMain.on("versionControl:requestEntityData", function(
-  e: any,
-  folderPath: string
-) {
-  SolutionParser.parseEntityData(log, win, folderPath);
-});
-
-/**
- * Commit to git repository. Initializes if this is the first commit.
- * To-Do: Have user init repo, then allow commit?
- */
-ipcMain.on("git:commit", function(
-  e: any,
-  summary: any,
-  description: string,
-  repoPath: string
-) {
-  log.info(`Commit Message: ${description}, Repo Path: ${repoPath}`);
-  simpleGit(repoPath).diffSummary(function(err: any, status: any) {
-    log.info(status.files[0]);
-  });
-
-  win.webContents.send("git:commit-completed", true);
-  /*
-  simpleGit()
-    .cwd(repoPath)
-    .add("./*")
-    .commit(`summary: ${summary}, desc: ${description}`, () => {
-      log.info(`Changes commited to repo: ${repoPath}`);
-    });
-    */
-});
-
-ipcMain.on("git:init", function(e: any, repoPath: string) {
-  const gitP = require("simple-git/promise");
-  const git = gitP(repoPath);
-  git
-    .checkIsRepo()
-    .then((isRepo: any) => !isRepo && initialiseRepo(git))
-    .then(() => log.info(`Initialized repo for directory ${repoPath}`));
-});
-
-/**
- * Initialize git repository
- * @param {simpleGit} git
- */
-function initialiseRepo(git: any) {
-  return git.init().then(() => {});
-}
-//setDefaultSettings();
-
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -157,309 +105,25 @@ app.on("activate", () => {
   }
 });
 
-/*
-  Set Default Settings
-*/
-/*
-function setDefaultSettings() {
-  let settings = {
-    _id: "id1",
-    restEndpoint: "https://contoso.api.crm.dynamics.com/api/data/v9.0/",
-    repoPath: `${app.getAppPath()}\\output\\ExtractedSolution`
-  };
+/// Solution Packager ///
 
-  db.insert(settings, function(err, newSettings) {
-    if (err) console.log(`ERROR ${err}`);
-  });
-}
-*/
+ipcMain.on(
+  "packager:retrieveDefaultExtract",
+  SolutionPackager.retrieveDefaultExtract
+);
 
-/*
-  Retrieve Settings
-*/
-ipcMain.on("packagerPresets:retrieve", function(e: any) {
-  db.find({ presetName: { $exists: true } }, function(err: any, presets: any) {
-    win.webContents.send("packagerPresets:acquired", presets);
-  });
-});
+ipcMain.on("packager:execute", SolutionPackager.execute);
 
-/*
-  Update Settings
+ipcMain.on("viewInExplorer", SolutionPackager.viewInExplorer);
 
-  Preset:
-  {
-    _id: string,
-    presetName: string,
-    action: string, // {"extract"|"pack"}
-    zipFile: string, // <file path>
-    zipFilePath: string,
-    folder: string, // <folder path>
-    packageType: string, // {"unmanaged"|"managed"|"both"}
-    allowWrite: string, // {"yes"|"no"}
-    allowDelete: string, // {"yes"|"no"|"prompt"}
-    clobber: string,
-    errorLevel: string, // {"yes"|"no"|"prompt"}
-    map: string, // <file path>
-    nologo: string,
-    log: string, // <file path>
-    sourceLoc: string, // <string>
-    localize: string
-  }
-*/
-ipcMain.on("packagerPresets:update", function(e: any, preset: any) {
-  db.update(
-    {
-      presetName: `${preset.presetName}`
-    },
-    {
-      $set: { ...preset }
-    },
-    {},
-    function(err: any, numReplaced: any) {
-      // Update callbackcode here
-      // db.find({ presetName: { $exists: true } }, function(
-      //   err,
-      //   presets
-      // ) {
-      //   win.webContents.send("packagerPresets:acquired", presets);
-      // });
-    }
-  );
-});
+/// Version Control ///
 
-ipcMain.on("packagerPresets:insert", function(e: any, preset: any) {
-  db.insert({ ...preset }, function(err: any, newDoc: any) {});
-});
+ipcMain.on("versionControl:requestEntityData", VersionControl.retrieveData);
 
-/*
-ipcMain.on("settings:update", function(e, settings) {
-  let currentSettings = null;
-  let newSettings = settings;
-  db.findOne({ _id: "id1" }, { restEndpoint: 1, repoPath: 1 }, function(
-    err,
-    settings
-  ) {
-    currentSettings = settings;
+/**
+ * Commit to git repository. Initializes if this is the first commit.
+ * To-Do: Have user init repo, then allow commit?
+ */
+ipcMain.on("git:commit", VersionControl.commit);
 
-    // If setting has changed update
-    let restEndpoint = null;
-    if (
-      currentSettings.restEndpoint === newSettings.restEndpoint ||
-      newSettings.restEndpoint === undefined
-    ) {
-      restEndpoint = currentSettings.restEndpoint;
-    } else {
-      restEndpoint = newSettings.restEndpoint;
-    }
-
-    // If setting has changed update
-    let repoPath = null;
-    if (
-      currentSettings.repoPath === newSettings.repoPath ||
-      newSettings.repoPath === undefined
-    ) {
-      repoPath = currentSettings.repoPath;
-    } else {
-      repoPath = newSettings.repoPath;
-    }
-
-    // Update settings
-    db.update(
-      {
-        _id: "id1"
-      },
-      {
-        $set: {
-          repoPath: repoPath,
-          restEndpoint: restEndpoint
-        }
-      },
-      { multi: true },
-      function(err, numReplaced) {
-        // Update callbackcode here
-      }
-    );
-  });
-});
-*/
-
-ipcMain.on("packager:retrieveDefaultExtract", function(e: any) {
-  win.webContents.send("packager:defaultExtract", {
-    packagerSettings: {
-      presetName: "Default",
-      action: "extract", // {Extract|Pack}
-      zipFile: "", // <file path>
-      zipFilePath: `${app.getPath("documents")}\\${
-        app.name
-      }\\solutions\\PackedSolutions`,
-      folder: `${app.getPath("documents")}\\${
-        app.name
-      }\\solutions\\ExtractedSolution`, // <folder path>
-      packageType: "", // {Unmanaged|Managed|Both}
-      allowWrite: "", // {Yes|No}
-      allowDelete: "", // {Yes|No|Prompt}
-      clobber: "",
-      errorLevel: "", // {Yes|No|Prompt}
-      map: "", // <file path>
-      nologo: "",
-      log: "", // <file path>
-      sourceLoc: "", // <string>
-      localize: ""
-    }
-  });
-});
-
-ipcMain.on("viewInExplorer", function(e: any, packagerSettings: any) {
-  let outputPath = `${packagerSettings.zipFilePath}\\${splitZipFileString(
-    packagerSettings.zipFile
-  )}`;
-  let extractFolderPath = `${packagerSettings.folder}`;
-
-  // User input does not require .zip. Ensure it's added if not present to prevent failure.
-  if (getFileExtension(packagerSettings.zipFile) === "") {
-    outputPath += ".zip";
-  }
-
-  electron.shell.showItemInFolder(
-    packagerSettings.action === "pack" ? outputPath : extractFolderPath
-  );
-});
-
-// Catch solution:unpack
-ipcMain.on("packager:execute", function(e: any, packagerSettings: any) {
-  const childProcess = require("child_process"); // The power of Node.JS
-  log.info(`Dynamics 365 solution to unpack: ${packagerSettings.zipFile}`);
-
-  let params = getPackagerParameters(packagerSettings);
-
-  let solutoinPackagerPath = null;
-  if (isDev) {
-    solutoinPackagerPath = `./assets/powershell/SolutionPackager.exe `;
-  } else {
-    //TODO: Consider OS when creating path
-    solutoinPackagerPath = `${process.resourcesPath}\\powershell\\SolutionPackager.exe`;
-    //solutoinPackagerPath = convertPathToShellPath(solutoinPackagerPath);
-  }
-
-  log.verbose(
-    `About to run solution packager shell command ${solutoinPackagerPath} \n\t- parameters: ${params}`
-  );
-
-  const ls = childProcess.spawn(solutoinPackagerPath, params);
-
-  let output: any = [];
-  ls.stdout.on("data", function(data: any) {
-    log.info("SolutionPackager: stdout: <" + data + "> ");
-    // appendToDroidOutput(data);
-
-    // TODO Handle edge cases i.e. Solution package type did not match requested type.
-    // Attempting to unpack as managed when already exists as unmanaged
-
-    output.push(data.toString());
-    if (`${data}`.includes("Delete")) {
-      ls.stdin.write("No\n");
-      log.verbose(
-        "Prevent SolutionPackager.exe file delete. stdout message: " +
-          data.toString()
-      );
-    }
-  });
-
-  ls.stderr.on("data", function(data: any) {
-    log.error("Error packaging or extracting solution: " + data);
-  });
-
-  ls.on("close", function(code: any) {
-    // console.log('child process exited with code ' + code);
-    if (code === 0) {
-      win.webContents.send("packager:output", "success", output);
-      log.info(`SolutionPacakager output: ${output.join("\n")}`);
-    } else {
-      win.webContents.send("packager:output", "error", code);
-    }
-  });
-
-  ls.on("error", (code: any) => {
-    log.error(
-      `child process exited with code ${code} \n\t ${code.message} \n\t ${code.stack}`
-    );
-  });
-});
-
-function getPackagerParameters(packagerSettings: any) {
-  let parameters: any = [];
-  let param: string = "";
-
-  // If we are packing the solution combine zipFilePath and zipFile for command line arg
-  // Electron throws error when trying to use
-  if (packagerSettings.action === "pack") {
-    let zipFile = `${packagerSettings.zipFilePath}/${splitZipFileString(
-      packagerSettings.zipFile
-    )}`;
-    log.info(`zipFile: ${zipFile}`);
-    packagerSettings.zipFile = zipFile;
-
-    delete packagerSettings.zipFilePath;
-
-    // Add file extension if it's missing.
-    if (getFileExtension(packagerSettings.zipFile) === "") {
-      packagerSettings.zipFile += ".zip";
-    }
-  } else {
-    delete packagerSettings.zipFilePath;
-  }
-
-  let isValid = true;
-  for (var key in packagerSettings) {
-    if (
-      packagerSettings[key] !== "" &&
-      packagerSettings[key] !== undefined &&
-      !parameters.includes(key)
-    ) {
-      switch (key) {
-        case "presetName":
-        case "newPresetName":
-          param = "";
-          isValid = false;
-          break;
-        case "clobber":
-        case "localize":
-          param = `${packagerSettings[key]}`;
-          break;
-        case "folder":
-        case "zipFile":
-          // Quotes to handle paths with spaces
-          param = `/${key}:${packagerSettings[key]}`;
-          break;
-        default:
-          param = `/${key}:${packagerSettings[key]}`;
-      }
-      if (isValid) {
-        parameters.push(param);
-      } else {
-        isValid = true;
-      }
-    }
-  }
-
-  return parameters;
-}
-
-function splitZipFileString(str: string) {
-  let file = str.split("\\").pop();
-  return file;
-}
-
-// Convert Windows path into Linux path type
-function convertPathToShellPath(path: any) {
-  let match = path.match(/[a-zA-Z]:\\/i);
-  let driveLetter = match[0].split(":")[0];
-
-  return path
-    .replace(/[a-zA-Z]:\\/i, "/" + driveLetter + "/")
-    .replace(/\\/g, "/");
-}
-
-function getFileExtension(filename: string) {
-  return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
-}
+ipcMain.on("git:init", VersionControl.init);
