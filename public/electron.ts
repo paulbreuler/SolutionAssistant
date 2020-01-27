@@ -40,13 +40,16 @@ function initializeApp() {
       : `file://${path.join(__dirname, "../build/index.html")}`
   );
 
-  if (!isDev)
+  if (!isDev) {
     log.info(
-      `Loading application primary index.html from: file://${path.join(
+      `Mode: Production. Loading application primary index.html from: file://${path.join(
         __dirname,
         "../build/index.html"
       )}`
     );
+  } else {
+    log.info("Mode: Development");
+  }
 
   // create a new `splash`-Window
   let splash = new BrowserWindow({
