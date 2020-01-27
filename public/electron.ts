@@ -4,9 +4,8 @@ const path = require("path");
 export const log = require("electron-log");
 export const { app, BrowserWindow, ipcMain } = electron;
 export const isDev = require("electron-is-dev");
-import SolutionPackager from "./SolutionPackager";
-import { SolutionParser } from "./SolutionParser";
-import VersionControl from "./VersionControl";
+import SolutionPackager from "../src/electron-extensions/SolutionPackager";
+import VersionControl from "../src/electron-extensions/VersionControl";
 
 export const Datastore = require("nedb"),
   db = new Datastore({

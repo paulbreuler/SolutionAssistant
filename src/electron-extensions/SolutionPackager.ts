@@ -1,7 +1,8 @@
+export {};
 import Helpers from "./Helpers";
 const electron = require("electron");
-import { log, win, isDev, db, app } from "./electron";
-const { ipcMain } = electron;
+import { log, win, isDev, db, app } from "../../public/electron";
+const { ipcMain, process } = electron;
 export default class SolutionPackager {
   static retrieveDefaultExtract(e: any) {
     win.webContents.send("packager:defaultExtract", {
