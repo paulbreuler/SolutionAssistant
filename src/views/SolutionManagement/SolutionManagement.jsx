@@ -129,7 +129,6 @@ class SolutionManagement extends React.Component {
       }
       return;
     } else {
-      console.log(fileNames[0]);
       this.setState({ solutionFile: fileNames[0] });
       this.props.onUpdatePackagerSetting({
         zipFile: fileNames[0]
@@ -166,7 +165,7 @@ class SolutionManagement extends React.Component {
       }
     }
     if (isValid) {
-      ipcRenderer.send("packager", this.props.packagerSettings);
+      ipcRenderer.send("packager:execute", this.props.packagerSettings);
       this.setState({ isPacking: true });
     }
   }
@@ -177,8 +176,12 @@ class SolutionManagement extends React.Component {
     return { path, file };
   }
 
+  getFileExtension(filename) {
+    return filename.slice(((filename.lastIndexOf(".") - 1) >>> 0) + 2);
+  }
+
   showInFileExplorer() {
-    electron.shell.showItemInFolder(this.state.packageFolder);
+    ipcRenderer.send("viewInExplorer", this.props.packagerSettings);
   }
 
   showNotification = notification => {
