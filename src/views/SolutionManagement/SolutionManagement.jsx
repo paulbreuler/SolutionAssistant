@@ -74,7 +74,7 @@ class SolutionManagement extends React.Component {
     const { packagerSettings } = this.props;
     if (nextProps.packagerSettings !== packagerSettings) {
       if (packagerSettings) {
-        this.setState({ packageFolder: false });
+        this.setState({ showViewInExplorer: false });
       }
     }
   }
@@ -111,7 +111,7 @@ class SolutionManagement extends React.Component {
 
     this.setState({
       isPacking: false,
-      packageFolder: type === "success" ? true : false
+      showViewInExplorer: type === "success" ? true : false
     });
   }
 
@@ -222,7 +222,7 @@ class SolutionManagement extends React.Component {
   };
 
   render() {
-    let { showViewInExplorer: packageFolder } = this.state;
+    let { showViewInExplorer } = this.state;
     return (
       <div>
         <Grid container>
@@ -306,7 +306,7 @@ class SolutionManagement extends React.Component {
                         </Button>
                       </ItemGrid>
                     )}
-                    {packageFolder && (
+                    {showViewInExplorer && (
                       <ItemGrid xs={12}>
                         <Button
                           color="rose"

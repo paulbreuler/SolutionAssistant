@@ -1,9 +1,11 @@
 export {};
 import Helpers from "./Helpers";
+const path = require("path");
 const electron = require("electron");
 const fs = require("fs");
 import { log, win, isDev, db, app } from "../../public/electron";
-const { ipcMain, process } = electron;
+const { ipcMain } = electron;
+const process = require("process");
 
 export default class SolutionPackager {
   static retrieveDefaultExtract(e: any) {
@@ -62,7 +64,7 @@ export default class SolutionPackager {
       solutionPackagerPath = `./assets/powershell/SolutionPackager.exe `;
     } else {
       //TODO: Consider OS when creating path
-      solutionPackagerPath = `${process.resourcesPath}\\powershell\\SolutionPackager.exe`;
+      solutionPackagerPath = `${process.resourcesPath}\\powershell\\SolutionPackager.exe`; // path.join(__dirname, "\\resources\\powershell\\SolutionPackager.exe");
       //solutoinPackagerPath = convertPathToShellPath(solutoinPackagerPath);
     }
 

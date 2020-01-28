@@ -1,6 +1,7 @@
 export {};
 const electron = require("electron");
 const path = require("path");
+const process = require("process");
 export const log = require("electron-log");
 export const { app, BrowserWindow, ipcMain } = electron;
 export const isDev = require("electron-is-dev");
@@ -27,11 +28,13 @@ export const Datastore = require("nedb"),
 export let win: any;
 
 function initializeApp() {
-  [REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS].forEach(extension => {
-    installExtension(extension)
-      .then((name: any) => console.log(`Added Extension: ${name}`))
-      .catch((err: any) => console.log("An error occurred: ", err));
-  });
+  if (isDev) {
+    [REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS].forEach(extension => {
+      installExtension(extension)
+        .then((name: any) => console.log(`Added Extension: ${name}`))
+        .catch((err: any) => console.log("An error occurred: ", err));
+    });
+  }
 
   log.level = "verbose";
   // Create the browser window.
