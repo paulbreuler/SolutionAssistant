@@ -34,13 +34,20 @@ export default class SolutionPackager {
 
   static execute(e: any, packagerSettings: any) {
     const childProcess = require("child_process"); // The power of Node.JS
-    log.info(`Dynamics 365 solution to unpack: ${packagerSettings.zipFile}`);
-    let params: any = null;
+    log.info(
+      `Preparing to run SolutionPackager on Dynamics 365 solution: ${packagerSettings.zipFile}`
+    );
 
+    let params: any = null;
     try {
       params = SolutionPackager.getPackagerParameters(packagerSettings);
     } catch (e) {
-      log.error((<Error>e).message);
+      if (e instanceof SolutionPackagerError) {
+        log.error((<SolutionPackagerError>e).message);
+      } else {
+        log.error(`${(<Error>e).message} \n ${(<Error>e).stack}`);
+      }
+
       win.webContents.send("packager:output", "error", (<Error>e).message);
       return;
     }
@@ -50,7 +57,7 @@ export default class SolutionPackager {
       return;
     }
 
-    let solutionPackagerPath = null;
+    let solutionPackagerPath: string = "";
     if (isDev) {
       solutionPackagerPath = `./assets/powershell/SolutionPackager.exe `;
     } else {
@@ -60,22 +67,22 @@ export default class SolutionPackager {
     }
 
     log.verbose(
-      `About to run solution packager shell command ${solutionPackagerPath} \n\t- parameters: ${params}`
+      `Running SolutionPackager shell command ${solutionPackagerPath} \n\t- parameters: ${params}`
     );
 
-    const ls = childProcess.spawn(solutionPackagerPath, params);
+    const spawnedProcess = childProcess.spawn(solutionPackagerPath, params);
 
     let output: any = [];
-    ls.stdout.on("data", function(data: any) {
+
+    spawnedProcess.stdout.on("data", function(data: any) {
       log.info("SolutionPackager: stdout: <" + data + "> ");
-      // appendToDroidOutput(data);
 
       // TODO Handle edge cases i.e. Solution package type did not match requested type.
       // Attempting to unpack as managed when already exists as unmanaged
 
       output.push(data.toString());
       if (`${data}`.includes("Delete")) {
-        ls.stdin.write("No\n");
+        spawnedProcess.stdin.write("No\n");
         log.verbose(
           "Prevent SolutionPackager.exe file delete. stdout message: " +
             data.toString()
@@ -83,11 +90,11 @@ export default class SolutionPackager {
       }
     });
 
-    ls.stderr.on("data", function(data: any) {
+    spawnedProcess.stderr.on("data", function(data: any) {
       log.error("Error packaging or extracting solution: " + data);
     });
 
-    ls.on("close", function(code: any) {
+    spawnedProcess.on("close", function(code: any) {
       // console.log('child process exited with code ' + code);
       if (code === 0) {
         win.webContents.send("packager:output", "success", output);
@@ -97,7 +104,7 @@ export default class SolutionPackager {
       }
     });
 
-    ls.on("error", (code: any) => {
+    spawnedProcess.on("error", (code: any) => {
       log.error(
         `child process exited with code ${code} \n\t ${code.message} \n\t ${code.stack}`
       );
@@ -112,11 +119,11 @@ export default class SolutionPackager {
     // Electron throws error when trying to use
     if (packagerSettings.action === "pack") {
       if (packagerSettings.zipFilePath === "") {
-        throw new Error("Output path not specified");
+        throw new SolutionPackagerError("Output path not specified");
       }
 
       if (!fs.existsSync(packagerSettings.zipFilePath)) {
-        throw new Error(
+        throw new SolutionPackagerError(
           `${packagerSettings.zipFilePath} - is an invalid path.`
         );
       }
@@ -246,3 +253,10 @@ ipcMain.on("packagerPresets:update", function(e: any, preset: any) {
 ipcMain.on("packagerPresets:insert", function(e: any, preset: any) {
   db.insert({ ...preset }, function(err: any, newDoc: any) {});
 });
+
+class SolutionPackagerError extends Error {
+  constructor(message?: string) {
+    super(message);
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}

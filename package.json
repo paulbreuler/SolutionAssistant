@@ -67,6 +67,7 @@
     "electron": "electron ."
   },
   "devDependencies": {
+    "7zip": "0.0.6",
     "@types/react": "^16.9.19",
     "@types/react-dom": "^16.9.5",
     "concurrently": "^3.6.1",

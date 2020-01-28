@@ -104,7 +104,6 @@ class SolutionManagement extends React.Component {
       packageFolder:
         type === "success" ? this.props.packagerSettings.folder : ""
     });
-    this.handleError(event);
   }
 
   handleError(err) {
@@ -114,6 +113,10 @@ class SolutionManagement extends React.Component {
   handleChange = event => {
     this.props.onUpdatePackagerSetting({
       [event.target.name]: event.target.value
+    });
+
+    this.setState({
+      packageFolder: false
     });
   };
 
@@ -214,6 +217,7 @@ class SolutionManagement extends React.Component {
   };
 
   render() {
+    let { packageFolder } = this.state;
     return (
       <div>
         <Grid container>
@@ -297,7 +301,7 @@ class SolutionManagement extends React.Component {
                         </Button>
                       </ItemGrid>
                     )}
-                    {this.state.packageFolder && (
+                    {packageFolder && (
                       <ItemGrid xs={12}>
                         <Button
                           color="rose"

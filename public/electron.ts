@@ -7,6 +7,12 @@ export const isDev = require("electron-is-dev");
 import SolutionPackager from "../src/electron-extensions/SolutionPackager";
 import VersionControl from "../src/electron-extensions/VersionControl";
 
+const {
+  default: installExtension,
+  REACT_DEVELOPER_TOOLS,
+  REDUX_DEVTOOLS
+} = require("electron-devtools-installer");
+
 export const Datastore = require("nedb"),
   db = new Datastore({
     filename: `${app.getPath("documents")}\\${
@@ -21,6 +27,12 @@ export const Datastore = require("nedb"),
 export let win: any;
 
 function initializeApp() {
+  [REACT_DEVELOPER_TOOLS, REDUX_DEVTOOLS].forEach(extension => {
+    installExtension(extension)
+      .then((name: any) => console.log(`Added Extension: ${name}`))
+      .catch((err: any) => console.log("An error occurred: ", err));
+  });
+
   log.level = "verbose";
   // Create the browser window.
   win = new BrowserWindow({

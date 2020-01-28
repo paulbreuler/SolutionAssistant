@@ -24,8 +24,11 @@ module.exports = [
       filename: "electron.js"
     },
     resolve: {
-      extensions: [".ts", ".tsx", ".js"]
+      extensions: [".ts", ".tsx", ".js", ".json"]
     },
-    devtool: "source-map"
+    devtool: "source-map",
+    node: {
+      __dirname: true
+    }
   }
 ];

@@ -20,7 +20,7 @@ module.exports = [
       filename: "electron.js"
     },
     resolve: {
-      extensions: [".ts", ".tsx", ".js"]
+      extensions: [".ts", ".tsx", ".js", ".json"]
     },
     node: {
       __dirname: false // Webpack replaces __dirname with /
