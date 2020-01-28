@@ -75,19 +75,30 @@ class SolutionManagement extends React.Component {
   }
 
   handlePackagerOutput(event, type, output) {
-    if (type === "success") {
-      this.showNotification({
-        message: "Solution extracted successfully",
-        color: "success",
-        icon: AddAlert
-      });
-    } else {
-      this.showNotification({
-        message: `Solution failed to extract! please check log file located at %appdata%\\solution-assistant`,
-        color: "danger",
-        icon: AddAlert
-      });
+    switch (type) {
+      case "success":
+        this.showNotification({
+          message: "Solution extracted successfully",
+          color: "success",
+          icon: AddAlert
+        });
+        break;
+      case "error":
+        this.showNotification({
+          message: `Error: ${output} \nPlease check log file located at %appdata%\\solution-assistant for more info. `,
+          color: "danger",
+          icon: AddAlert
+        });
+        break;
+      default:
+        this.showNotification({
+          message: `Solution failed to extract! Please check log file located at %appdata%\\solution-assistant`,
+          color: "danger",
+          icon: AddAlert
+        });
+        break;
     }
+
     this.setState({
       isPacking: false,
       packageFolder:
@@ -158,6 +169,14 @@ class SolutionManagement extends React.Component {
       if (!settings.zipFile) {
         this.showNotification({
           message: "Please provide a solution file name",
+          color: "warning",
+          icon: AddAlert
+        });
+        isValid = false;
+      }
+      if (!settings.zipFilePath) {
+        this.showNotification({
+          message: "Please provide a value for Output Folder",
           color: "warning",
           icon: AddAlert
         });

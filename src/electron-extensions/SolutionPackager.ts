@@ -1,8 +1,10 @@
 export {};
 import Helpers from "./Helpers";
 const electron = require("electron");
+const fs = require("fs");
 import { log, win, isDev, db, app } from "../../public/electron";
 const { ipcMain, process } = electron;
+
 export default class SolutionPackager {
   static retrieveDefaultExtract(e: any) {
     win.webContents.send("packager:defaultExtract", {
@@ -30,42 +32,38 @@ export default class SolutionPackager {
     });
   }
 
-  static viewInExplorer(e: any, packagerSettings: any) {
-    let outputPath = `${
-      packagerSettings.zipFilePath
-    }\\${Helpers.splitZipFileString(packagerSettings.zipFile)}`;
-    let extractFolderPath = `${packagerSettings.folder}`;
-
-    // User input does not require .zip. Ensure it's added if not present to prevent failure.
-    if (Helpers.getFileExtension(packagerSettings.zipFile) === "") {
-      outputPath += ".zip";
-    }
-
-    electron.shell.showItemInFolder(
-      packagerSettings.action === "pack" ? outputPath : extractFolderPath
-    );
-  }
-
   static execute(e: any, packagerSettings: any) {
     const childProcess = require("child_process"); // The power of Node.JS
     log.info(`Dynamics 365 solution to unpack: ${packagerSettings.zipFile}`);
+    let params: any = null;
 
-    let params = SolutionPackager.getPackagerParameters(packagerSettings);
+    try {
+      params = SolutionPackager.getPackagerParameters(packagerSettings);
+    } catch (e) {
+      log.error((<Error>e).message);
+      win.webContents.send("packager:output", "error", (<Error>e).message);
+      return;
+    }
 
-    let solutoinPackagerPath = null;
+    if (!params) {
+      win.webContents.send("packager:output", "error", "Invalid parameters");
+      return;
+    }
+
+    let solutionPackagerPath = null;
     if (isDev) {
-      solutoinPackagerPath = `./assets/powershell/SolutionPackager.exe `;
+      solutionPackagerPath = `./assets/powershell/SolutionPackager.exe `;
     } else {
       //TODO: Consider OS when creating path
-      solutoinPackagerPath = `${process.resourcesPath}\\powershell\\SolutionPackager.exe`;
+      solutionPackagerPath = `${process.resourcesPath}\\powershell\\SolutionPackager.exe`;
       //solutoinPackagerPath = convertPathToShellPath(solutoinPackagerPath);
     }
 
     log.verbose(
-      `About to run solution packager shell command ${solutoinPackagerPath} \n\t- parameters: ${params}`
+      `About to run solution packager shell command ${solutionPackagerPath} \n\t- parameters: ${params}`
     );
 
-    const ls = childProcess.spawn(solutoinPackagerPath, params);
+    const ls = childProcess.spawn(solutionPackagerPath, params);
 
     let output: any = [];
     ls.stdout.on("data", function(data: any) {
@@ -113,6 +111,16 @@ export default class SolutionPackager {
     // If we are packing the solution combine zipFilePath and zipFile for command line arg
     // Electron throws error when trying to use
     if (packagerSettings.action === "pack") {
+      if (packagerSettings.zipFilePath === "") {
+        throw new Error("Output path not specified");
+      }
+
+      if (!fs.existsSync(packagerSettings.zipFilePath)) {
+        throw new Error(
+          `${packagerSettings.zipFilePath} - is an invalid path.`
+        );
+      }
+
       let zipFile = `${
         packagerSettings.zipFilePath
       }/${Helpers.splitZipFileString(packagerSettings.zipFile)}`;
@@ -163,6 +171,22 @@ export default class SolutionPackager {
     }
 
     return parameters;
+  }
+
+  static viewInExplorer(e: any, packagerSettings: any) {
+    let outputPath = `${
+      packagerSettings.zipFilePath
+    }\\${Helpers.splitZipFileString(packagerSettings.zipFile)}`;
+    let extractFolderPath = `${packagerSettings.folder}`;
+
+    // User input does not require .zip. Ensure it's added if not present to prevent failure.
+    if (Helpers.getFileExtension(packagerSettings.zipFile) === "") {
+      outputPath += ".zip";
+    }
+
+    electron.shell.showItemInFolder(
+      packagerSettings.action === "pack" ? outputPath : extractFolderPath
+    );
   }
 }
 

@@ -21,7 +21,7 @@ export const Datastore = require("nedb"),
 export let win: any;
 
 function initializeApp() {
-  log.transports.file.level = "verbose";
+  log.level = "verbose";
   // Create the browser window.
   win = new BrowserWindow({
     width: 1300,
