@@ -39,7 +39,7 @@ class SolutionManagement extends React.Component {
     solutionFile: "",
     count: 0,
     isPacking: false,
-    packageFolder: "",
+    packageFolder: false,
     loadedFromDB: false
   };
 
@@ -66,6 +66,16 @@ class SolutionManagement extends React.Component {
     // Only grab default settings if a preset is not already defined.
     if (this.props.packagerSettings.presetName === "") {
       ipcRenderer.send("packagerPresets:retrieve");
+    }
+  }
+
+  componentDidUpdate(nextProps) {
+    // Check if packagersettings props have updated.
+    const { packagerSettings } = this.props;
+    if (nextProps.packagerSettings !== packagerSettings) {
+      if (packagerSettings) {
+        this.setState({ packageFolder: false });
+      }
     }
   }
 
@@ -101,8 +111,7 @@ class SolutionManagement extends React.Component {
 
     this.setState({
       isPacking: false,
-      packageFolder:
-        type === "success" ? this.props.packagerSettings.folder : ""
+      packageFolder: type === "success" ? true : false
     });
   }
 
@@ -113,10 +122,6 @@ class SolutionManagement extends React.Component {
   handleChange = event => {
     this.props.onUpdatePackagerSetting({
       [event.target.name]: event.target.value
-    });
-
-    this.setState({
-      packageFolder: false
     });
   };
 
