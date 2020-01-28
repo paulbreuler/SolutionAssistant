@@ -39,7 +39,7 @@ class SolutionManagement extends React.Component {
     solutionFile: "",
     count: 0,
     isPacking: false,
-    packageFolder: false,
+    showViewInExplorer: false,
     loadedFromDB: false
   };
 
@@ -222,7 +222,7 @@ class SolutionManagement extends React.Component {
   };
 
   render() {
-    let { packageFolder } = this.state;
+    let { showViewInExplorer: packageFolder } = this.state;
     return (
       <div>
         <Grid container>
