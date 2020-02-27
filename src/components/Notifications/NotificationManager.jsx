@@ -3,7 +3,7 @@ import Notification from "./Notification.jsx";
 import { connect } from "react-redux";
 import { addNotification, removeNotification } from "../../redux";
 import { Badge, IconButton } from "@material-ui/core";
-import NotificationButton from "./NotificationButton";
+import { NotificationButton } from "../../components";
 
 class NotificationManager extends React.Component {
   constructor(props) {

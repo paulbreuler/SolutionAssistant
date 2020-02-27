@@ -4,15 +4,7 @@ import { withStyles } from "@material-ui/core/styles";
 import IconButton from "@material-ui/core/IconButton";
 import NotificationsIcon from "@material-ui/icons/Notifications";
 
-import {
-  grayColor,
-  roseColor,
-  primaryColor,
-  infoColor,
-  successColor,
-  warningColor,
-  dangerColor
-} from "assets/jss/material-dashboard-react.jsx";
+import { dangerColor } from "assets/jss/material-dashboard-react.jsx";
 
 const StyledBadge = withStyles(theme => ({
   badge: {
@@ -21,16 +13,20 @@ const StyledBadge = withStyles(theme => ({
 }))(Badge);
 
 export default function NotificationButton({ ...props }) {
-  const { badgeContent, ...rest } = props;
+  const { badgeContent, ...buttonOptions } = props;
   return (
-    <IconButton {...rest} color="inherit" aria-label="Notifications">
+    <React.Fragment>
       {badgeContent > 0 ? (
-        <StyledBadge badgeContent={badgeContent} color="secondary">
-          <NotificationsIcon />
-        </StyledBadge>
-      ) : (
-        <NotificationsIcon />
-      )}
-    </IconButton>
+        <IconButton
+          {...buttonOptions}
+          color="inherit"
+          aria-label="Notifications"
+        >
+          <StyledBadge badgeContent={badgeContent} color="secondary">
+            <NotificationsIcon />
+          </StyledBadge>
+        </IconButton>
+      ) : null}
+    </React.Fragment>
   );
 }

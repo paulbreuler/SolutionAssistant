@@ -98,6 +98,7 @@ import A from "./Typography/A.jsx";
 
 import Notification from "./Notifications/Notification.jsx";
 import NotificationManager from "./Notifications/NotificationManager";
+import NotificationButton from "./Notifications/NotificationButton";
 
 export {
   // Cards
@@ -141,7 +142,9 @@ export {
   Danger,
   Small,
   A,
+  FolderInput,
+  // Notifications
   Notification,
   NotificationManager,
-  FolderInput
+  NotificationButton
 };
