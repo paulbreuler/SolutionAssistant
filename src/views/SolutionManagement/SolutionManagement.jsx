@@ -331,7 +331,6 @@ class SolutionManagement extends React.Component {
               loadedFromDB={this.state.loadedFromDB}
             />
           </ItemGrid>
-          <NotificationManager />
         </Grid>
       </div>
     );

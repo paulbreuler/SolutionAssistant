@@ -13,6 +13,7 @@ import {
 import { Settings } from "@material-ui/icons";
 
 import headerLinksStyle from "assets/jss/material-dashboard-react/headerLinksStyle";
+import { NotificationManager } from "..";
 
 class HeaderLinks extends React.Component {
   state = {
@@ -30,6 +31,7 @@ class HeaderLinks extends React.Component {
     const { open } = this.state;
     return (
       <div>
+        <NotificationManager />
         <Manager style={{ display: "inline-block" }}>
           <Target>
             <IconButton

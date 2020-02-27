@@ -68,7 +68,7 @@ class App extends React.Component {
             <div className={classes.container}>{switchRoutes}</div>
           </div>
 
-          {this.getRoute() ? <Footer /> : null}
+          {/*this.getRoute() ? <Footer /> : null*/}
         </div>
       </div>
     );

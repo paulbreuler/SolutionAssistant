@@ -289,7 +289,6 @@ class VersionControl extends React.Component {
             </div>
           </SplitPane>
         </Paper>
-        <NotificationManager maxNotificationToDisplay={5} />
       </React.Fragment>
     );
   }
