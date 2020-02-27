@@ -39,7 +39,7 @@ class SolutionManagement extends React.Component {
     solutionFile: "",
     count: 0,
     isPacking: false,
-    packageFolder: "",
+    showViewInExplorer: false,
     loadedFromDB: false
   };
 
@@ -69,31 +69,50 @@ class SolutionManagement extends React.Component {
     }
   }
 
+  componentDidUpdate(nextProps) {
+    // Check if packagersettings props have updated.
+    const { packagerSettings } = this.props;
+    if (nextProps.packagerSettings !== packagerSettings) {
+      if (packagerSettings) {
+        this.setState({ showViewInExplorer: false });
+      }
+    }
+  }
+
   componentWillUnmount() {
     ipcRenderer.removeAllListeners("packager:output");
     ipcRenderer.removeAllListeners("packagerPresets:acquired");
   }
 
   handlePackagerOutput(event, type, output) {
-    if (type === "success") {
-      this.showNotification({
-        message: "Solution extracted successfully",
-        color: "success",
-        icon: AddAlert
-      });
-    } else {
-      this.showNotification({
-        message: `Solution failed to extract! please check log file located at %appdata%\\solution-assistant`,
-        color: "danger",
-        icon: AddAlert
-      });
+    switch (type) {
+      case "success":
+        this.showNotification({
+          message: "Solution extracted successfully",
+          color: "success",
+          icon: AddAlert
+        });
+        break;
+      case "error":
+        this.showNotification({
+          message: `Error: ${output} \nPlease check log file located at %appdata%\\solution-assistant for more info. `,
+          color: "danger",
+          icon: AddAlert
+        });
+        break;
+      default:
+        this.showNotification({
+          message: `Solution failed to extract! Please check log file located at %appdata%\\solution-assistant`,
+          color: "danger",
+          icon: AddAlert
+        });
+        break;
     }
+
     this.setState({
       isPacking: false,
-      packageFolder:
-        type === "success" ? this.props.packagerSettings.folder : ""
+      showViewInExplorer: type === "success" ? true : false
     });
-    this.handleError(event);
   }
 
   handleError(err) {
@@ -163,6 +182,14 @@ class SolutionManagement extends React.Component {
         });
         isValid = false;
       }
+      if (!settings.zipFilePath) {
+        this.showNotification({
+          message: "Please provide a value for Output Folder",
+          color: "warning",
+          icon: AddAlert
+        });
+        isValid = false;
+      }
     }
     if (isValid) {
       ipcRenderer.send("packager:execute", this.props.packagerSettings);
@@ -195,6 +222,7 @@ class SolutionManagement extends React.Component {
   };
 
   render() {
+    let { showViewInExplorer } = this.state;
     return (
       <div>
         <Grid container>
@@ -278,7 +306,7 @@ class SolutionManagement extends React.Component {
                         </Button>
                       </ItemGrid>
                     )}
-                    {this.state.packageFolder && (
+                    {showViewInExplorer && (
                       <ItemGrid xs={12}>
                         <Button
                           color="rose"
@@ -303,7 +331,6 @@ class SolutionManagement extends React.Component {
               loadedFromDB={this.state.loadedFromDB}
             />
           </ItemGrid>
-          <NotificationManager />
         </Grid>
       </div>
     );

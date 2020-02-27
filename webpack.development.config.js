@@ -1,3 +1,4 @@
+const path = require("path");
 module.exports = [
   {
     mode: "development",
@@ -7,7 +8,10 @@ module.exports = [
       rules: [
         {
           test: /\.ts$/,
-          include: /public/,
+          include: [
+            /public/,
+            path.resolve(__dirname, "src\\electron-extensions")
+          ],
           loader: "ts-loader",
           options: {
             configFile: "tsconfig.development.json"
@@ -20,8 +24,11 @@ module.exports = [
       filename: "electron.js"
     },
     resolve: {
-      extensions: [".ts", ".tsx", ".js"]
+      extensions: [".ts", ".tsx", ".js", ".json"]
     },
-    devtool: "source-map"
+    devtool: "source-map",
+    node: {
+      __dirname: true
+    }
   }
 ];

@@ -1,3 +1,4 @@
+const path = require("path");
 module.exports = [
   {
     mode: "production",
@@ -7,7 +8,10 @@ module.exports = [
       rules: [
         {
           test: /\.ts$/,
-          include: /public/,
+          include: [
+            /public/,
+            path.resolve(__dirname, "src\\electron-extensions")
+          ],
           loader: "ts-loader",
           options: {
             configFile: "tsconfig.development.json"
@@ -20,7 +24,7 @@ module.exports = [
       filename: "electron.js"
     },
     resolve: {
-      extensions: [".ts", ".tsx", ".js"]
+      extensions: [".ts", ".tsx", ".js", ".json"]
     },
     node: {
       __dirname: false // Webpack replaces __dirname with /

@@ -7,7 +7,7 @@ const path = require("path");
 const fs = require("fs");
 const xml2js = require("xml2js");
 const simpleGit = require("simple-git");
-import { BrowserWindow } from "electron";
+import { BrowserWindow } from "../../public/electron";
 /**
  * Explores recursively a directory and returns all the filepaths and folderpaths in the callback.
  *
@@ -139,7 +139,7 @@ function parseXml2js(
   parser: any,
   data: any,
   log: any,
-  win: BrowserWindow,
+  win: any,
   changes: any,
   callback: any
 ) {

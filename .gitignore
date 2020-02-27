@@ -25,7 +25,6 @@
 .env.test.local
 .env.production.local
 .vs
-.vscode
 yarn.lock
 package-lock.json
 

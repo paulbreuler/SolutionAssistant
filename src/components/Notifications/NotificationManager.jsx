@@ -2,12 +2,24 @@ import React from "react";
 import Notification from "./Notification.jsx";
 import { connect } from "react-redux";
 import { addNotification, removeNotification } from "../../redux";
+import { Badge, IconButton } from "@material-ui/core";
+import { NotificationButton } from "../../components";
 
 class NotificationManager extends React.Component {
   constructor(props) {
     super(props);
     this.closeNotification = this.closeNotification.bind(this);
+    this.state = {
+      showNotifications: true,
+      timeoutRequest: Array()
+    };
+    this.updateState = this.updateState.bind(this);
   }
+
+  updateState() {
+    this.setState({ showNotifications: !this.state.showNotifications });
+  }
+
   componentDidMount() {}
 
   closeNotification(id) {
@@ -15,10 +27,10 @@ class NotificationManager extends React.Component {
   }
 
   render() {
-    const { maxNotificationToDisplay /*, displayDuration */ } = this.props;
+    const { maxNotificationToDisplay, displayDuration } = this.props;
 
     // Set default to 30 seconds. TODO implement better notification timeouts
-    //let duration = displayDuration ? displayDuration : -1;
+    let duration = displayDuration ? displayDuration : 10000;
 
     return (
       <React.Fragment>
@@ -39,10 +51,7 @@ class NotificationManager extends React.Component {
               .map(notification => {
                 return (
                   <React.Fragment>
-                    {
-                      //setTimeout(() => {
-                      //this.closeNotification(notification.id);
-                      //}, duration) &&
+                    {this.state.showNotifications ? (
                       <Notification
                         key={notification.id}
                         id={notification.id}
@@ -54,12 +63,17 @@ class NotificationManager extends React.Component {
                         closeNotification={this.closeNotification}
                         close
                       />
-                    }
+                    ) : null}
                   </React.Fragment>
                 );
               })}
           </div>
         )}
+
+        <NotificationButton
+          badgeContent={this.props.notifications.length}
+          onClick={this.updateState}
+        ></NotificationButton>
       </React.Fragment>
     );
   }
@@ -74,7 +88,4 @@ const mapActionsToProps = {
   onRemoveNotification: removeNotification
 };
 
-export default connect(
-  mapStateToProps,
-  mapActionsToProps
-)(NotificationManager);
+export default connect(mapStateToProps, mapActionsToProps)(NotificationManager);
