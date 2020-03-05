@@ -34,7 +34,7 @@
     "chartist": "0.11.0",
     "classnames": "^2.2.6",
     "electron-is-dev": "^1.1.0",
-    "electron-log": "^4.0.4",
+    "electron-log": "^4.0.7",
     "immutability-helper": "^2.8.0",
     "nedb": "^1.8.0",
     "perfect-scrollbar": "1.5.0",
@@ -54,7 +54,7 @@
     "xml2js": "^0.4.19"
   },
   "scripts": {
-    "electron:dev": "npm run webpack:development && concurrently \"npm start\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:dev": "npm run webpack:development && concurrently \"npm start\" \"wait-on http://localhost:3000\"",
     "electron:pack": "electron-builder -c.extraMetadata.main=build/electron.js",
     "preelectron-pack": "yarn build",
     "webpack:development": "webpack --config ./webpack.development.config.js",
@@ -86,7 +86,7 @@
     "ts-loader": "^6.2.1",
     "typescript": "^3.7.5",
     "wait-on": "^3.2.0",
-    "webpack": "4.19.1",
+    "webpack": "4.42.0",
     "webpack-cli": "^3.3.10"
   },
   "browserslist": [

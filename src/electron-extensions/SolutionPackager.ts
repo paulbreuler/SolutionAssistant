@@ -3,9 +3,11 @@ import Helpers from "./Helpers";
 const path = require("path");
 const electron = require("electron");
 const fs = require("fs");
-import { log, win, isDev, db, app } from "../../public/electron";
+import { win, isDev, db, app } from "../../public/electron";
+import ElectronLog from "electron-log";
 const { ipcMain } = electron;
 const process = require("process");
+import childProcess from "child_process";
 
 export default class SolutionPackager {
   static retrieveDefaultExtract(e: any) {
@@ -35,8 +37,8 @@ export default class SolutionPackager {
   }
 
   static execute(e: any, packagerSettings: any) {
-    const childProcess = require("child_process"); // The power of Node.JS
-    log.info(
+    //const childProcess = require("child_process"); // The power of Node.JS
+    ElectronLog.info(
       `Preparing to run SolutionPackager on Dynamics 365 solution: ${packagerSettings.zipFile}`
     );
 
@@ -45,9 +47,9 @@ export default class SolutionPackager {
       params = SolutionPackager.getPackagerParameters(packagerSettings);
     } catch (e) {
       if (e instanceof SolutionPackagerError) {
-        log.error((<SolutionPackagerError>e).message);
+        ElectronLog.error((<SolutionPackagerError>e).message);
       } else {
-        log.error(`${(<Error>e).message} \n ${(<Error>e).stack}`);
+        ElectronLog.error(`${(<Error>e).message} \n ${(<Error>e).stack}`);
       }
 
       win.webContents.send("packager:output", "error", (<Error>e).message);
@@ -68,7 +70,7 @@ export default class SolutionPackager {
       //solutoinPackagerPath = convertPathToShellPath(solutoinPackagerPath);
     }
 
-    log.verbose(
+    ElectronLog.verbose(
       `Running SolutionPackager shell command ${solutionPackagerPath} \n\t- parameters: ${params}`
     );
 
@@ -77,7 +79,7 @@ export default class SolutionPackager {
     let output: any = [];
 
     spawnedProcess.stdout.on("data", function(data: any) {
-      log.info("SolutionPackager: stdout: <" + data + "> ");
+      ElectronLog.info("SolutionPackager: stdout: <" + data + "> ");
 
       // TODO Handle edge cases i.e. Solution package type did not match requested type.
       // Attempting to unpack as managed when already exists as unmanaged
@@ -85,7 +87,7 @@ export default class SolutionPackager {
       output.push(data.toString());
       if (`${data}`.includes("Delete")) {
         spawnedProcess.stdin.write("No\n");
-        log.verbose(
+        ElectronLog.verbose(
           "Prevent SolutionPackager.exe file delete. stdout message: " +
             data.toString()
         );
@@ -93,21 +95,22 @@ export default class SolutionPackager {
     });
 
     spawnedProcess.stderr.on("data", function(data: any) {
-      log.error("Error packaging or extracting solution: " + data);
+      ElectronLog.error("Error packaging or extracting solution: " + data);
     });
 
     spawnedProcess.on("close", function(code: any) {
       // console.log('child process exited with code ' + code);
       if (code === 0) {
         win.webContents.send("packager:output", "success", output);
-        log.info(`SolutionPacakager output: ${output.join("\n")}`);
+        ElectronLog.info(`SolutionPacakager output: ${output.join("\n")}`);
       } else {
         win.webContents.send("packager:output", "error", code);
+        ElectronLog.error(`SolutionPacakager output: ${output.join("\n")}`);
       }
     });
 
     spawnedProcess.on("error", (code: any) => {
-      log.error(
+      ElectronLog.error(
         `child process exited with code ${code} \n\t ${code.message} \n\t ${code.stack}`
       );
     });
@@ -133,7 +136,7 @@ export default class SolutionPackager {
       let zipFile = `${
         packagerSettings.zipFilePath
       }/${Helpers.splitZipFileString(packagerSettings.zipFile)}`;
-      log.info(`zipFile: ${zipFile}`);
+      ElectronLog.info(`zipFile: ${zipFile}`);
       packagerSettings.zipFile = zipFile;
 
       delete packagerSettings.zipFilePath;

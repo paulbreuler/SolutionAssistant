@@ -1,4 +1,5 @@
-import { log, win } from "../../public/electron";
+import { win } from "../../public/electron";
+import log from "electron-log";
 import { SolutionParser } from "./SolutionParser";
 const simpleGit = require("simple-git");
 

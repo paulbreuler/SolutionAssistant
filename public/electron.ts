@@ -1,9 +1,9 @@
 export {};
 const electron = require("electron");
+export const { app, BrowserWindow, ipcMain } = electron;
 const path = require("path");
 const process = require("process");
-export const log = require("electron-log");
-export const { app, BrowserWindow, ipcMain } = electron;
+import ElectronLog from "electron-log";
 export const isDev = require("electron-is-dev");
 import SolutionPackager from "../src/electron-extensions/SolutionPackager";
 import VersionControl from "../src/electron-extensions/VersionControl";
@@ -36,7 +36,6 @@ function initializeApp() {
     });
   }
 
-  log.level = "verbose";
   // Create the browser window.
   win = new BrowserWindow({
     width: 1300,
@@ -56,14 +55,16 @@ function initializeApp() {
   );
 
   if (!isDev) {
-    log.info(
+    ElectronLog.info(
       `Mode: Production. Loading application primary index.html from: file://${path.join(
         __dirname,
         "../build/index.html"
       )}`
     );
   } else {
-    log.info("Mode: Development");
+    ElectronLog.info("Mode: Development");
+    ElectronLog.transports.file;
+    ElectronLog.transports.file.level = "silly";
   }
 
   // create a new `splash`-Window

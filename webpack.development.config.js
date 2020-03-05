@@ -4,6 +4,7 @@ module.exports = [
     mode: "development",
     entry: "./public/electron.ts",
     target: "electron-main",
+    devtool: "source-map",
     module: {
       rules: [
         {
@@ -24,7 +25,10 @@ module.exports = [
       filename: "electron.js"
     },
     resolve: {
-      extensions: [".ts", ".tsx", ".js", ".json"]
+      extensions: [".tsx", ".ts", ".jsx", ".js", ".json"]
+    },
+    watchOptions: {
+      ignored: /node_modules/
     },
     devtool: "source-map",
     node: {
