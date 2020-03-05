@@ -1,7 +1,7 @@
 // /**
 //  *  Parse CRM data from extracted/unpacked solution
 //  */
-import Main from "../../public/electron-main";
+import Main from "../ElectronMain";
 export class SolutionParser {}
 // /** jshint {inline configuration here} */
 // const path = require("path");

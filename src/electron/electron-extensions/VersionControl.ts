@@ -1,4 +1,4 @@
-import Main from "../../public/electron-main";
+import Main from "../ElectronMain";
 export class VersionControl {}
 // import { win } from "../../public/electron";
 // import log from "electron-log";

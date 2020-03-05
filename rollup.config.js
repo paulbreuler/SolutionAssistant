@@ -2,7 +2,7 @@ import typescript from "rollup-plugin-typescript";
 
 export default {
   input: {
-    electron: "public/electron.ts"
+    electron: "src/electron/ElectronApp.ts"
   },
   output: {
     dir: "public",

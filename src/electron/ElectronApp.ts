@@ -1,4 +1,4 @@
-import Main from "./electron-main";
+import Main from "./ElectronMain";
 const electron = require("electron");
 const { app, BrowserWindow } = electron;
 

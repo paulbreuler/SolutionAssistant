@@ -1,4 +1,4 @@
-import Main from "../../public/electron-main";
+import Main from "../ElectronMain";
 export class SolutionPacakager {}
 // import Helpers from "./Helpers";
 // const path = require("path");
