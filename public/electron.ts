@@ -5,8 +5,8 @@ const path = require("path");
 const process = require("process");
 import ElectronLog from "electron-log";
 export const isDev = require("electron-is-dev");
-import SolutionPackager from "../src/electron-extensions/SolutionPackager";
-import VersionControl from "../src/electron-extensions/VersionControl";
+//import SolutionPackager from "../src/electron-extensions/SolutionPackager";
+//import VersionControl from "../src/electron-extensions/VersionControl";
 
 const {
   default: installExtension,
@@ -123,25 +123,25 @@ app.on("activate", () => {
   }
 });
 
-/// Solution Packager ///
+// /// Solution Packager ///
 
-ipcMain.on(
-  "packager:retrieveDefaultExtract",
-  SolutionPackager.retrieveDefaultExtract
-);
+// ipcMain.on(
+//   "packager:retrieveDefaultExtract",
+//   SolutionPackager.retrieveDefaultExtract
+// );
 
-ipcMain.on("packager:execute", SolutionPackager.execute);
+// ipcMain.on("packager:execute", SolutionPackager.execute);
 
-ipcMain.on("viewInExplorer", SolutionPackager.viewInExplorer);
+// ipcMain.on("viewInExplorer", SolutionPackager.viewInExplorer);
 
-/// Version Control ///
+// /// Version Control ///
 
-ipcMain.on("versionControl:requestEntityData", VersionControl.retrieveData);
+// ipcMain.on("versionControl:requestEntityData", VersionControl.retrieveData);
 
-/**
- * Commit to git repository. Initializes if this is the first commit.
- * To-Do: Have user init repo, then allow commit?
- */
-ipcMain.on("git:commit", VersionControl.commit);
+// /**
+//  * Commit to git repository. Initializes if this is the first commit.
+//  * To-Do: Have user init repo, then allow commit?
+//  */
+// ipcMain.on("git:commit", VersionControl.commit);
 
-ipcMain.on("git:init", VersionControl.init);
+// ipcMain.on("git:init", VersionControl.init);
